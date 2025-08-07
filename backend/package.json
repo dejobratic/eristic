@@ -1,0 +1,21 @@
+{
+  "name": "eristic-backend",
+  "version": "1.0.0",
+  "description": "Eristic Backend API",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "echo 'Backend not implemented yet. Run this command to start the backend development server.'",
+    "build": "echo 'Backend not implemented yet. Run this command to build the backend.'",
+    "start": "echo 'Backend not implemented yet. Run this command to start the backend in production.'",
+    "test": "echo 'Backend not implemented yet. Run this command to run backend tests.'"
+  },
+  "keywords": [
+    "api",
+    "backend",
+    "nodejs",
+    "typescript",
+    "eristic"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

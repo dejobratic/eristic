@@ -1,0 +1,21 @@
+<app-side-panel></app-side-panel>
+
+<div class="main-content">
+  <div class="container">
+    <h1>{{ title() }}</h1>
+    <form (ngSubmit)="onTopicSubmit()" class="topic-form">
+      <div class="form-group">
+        <label for="topic">Enter a topic:</label>
+        <input 
+          type="text" 
+          id="topic" 
+          name="topic"
+          [(ngModel)]="topic" 
+          placeholder="Type your topic here..." 
+          required
+        >
+      </div>
+      <button type="submit" [disabled]="!topic || topic.trim().length === 0">Go to Topic</button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,40 @@
+{
+  "name": "eristic",
+  "version": "1.0.0",
+  "description": "Eristic - Full-stack application for thoughtful topic exploration",
+  "scripts": {
+    "dev": "npm run frontend:dev",
+    "build": "npm run frontend:build",
+    "test": "npm run frontend:test",
+    "lint": "npm run frontend:lint",
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build",
+    "frontend:test": "cd frontend && npm test",
+    "frontend:lint": "cd frontend && npm run lint",
+    "frontend:install": "cd frontend && npm install",
+    "backend:dev": "echo 'Backend not implemented yet'",
+    "backend:build": "echo 'Backend not implemented yet'",
+    "backend:install": "echo 'Backend not implemented yet'",
+    "install:all": "npm run frontend:install && npm run backend:install",
+    "dev:all": "concurrently \"npm run frontend:dev\" \"npm run backend:dev\""
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/username/eristic.git"
+  },
+  "keywords": [
+    "angular",
+    "typescript",
+    "full-stack",
+    "eristic"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
