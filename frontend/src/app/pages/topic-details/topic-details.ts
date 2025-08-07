@@ -1,11 +1,13 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { MobileMenuButton } from '@eristic/components/mobile-menu-button/mobile-menu-button';
+import { SidePanel } from '@eristic/components/side-panel/side-panel';
 import { TopicService } from '@eristic/services/topic';
 
 @Component({
   selector: 'app-topic-details',
-  imports: [],
+  imports: [MobileMenuButton, SidePanel],
   templateUrl: './topic-details.html',
   styleUrl: './topic-details.css'
 })
