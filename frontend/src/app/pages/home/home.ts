@@ -1,8 +1,9 @@
-import { Component, signal, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TopicService } from '../../services/topic';
-import { SidePanel } from '../../components/side-panel/side-panel';
+import { Router } from '@angular/router';
+
+import { SidePanel } from '@eristic/components/side-panel/side-panel';
+import { TopicService } from '@eristic/services/topic';
 
 @Component({
   selector: 'app-home',

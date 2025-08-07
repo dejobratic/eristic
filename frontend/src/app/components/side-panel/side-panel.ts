@@ -1,7 +1,8 @@
+import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { TopicService } from '../../services/topic';
-import { CommonModule } from '@angular/common';
+
+import { TopicService } from '@eristic/services/topic';
 
 @Component({
   selector: 'app-side-panel',

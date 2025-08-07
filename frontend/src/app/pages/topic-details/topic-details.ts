@@ -1,6 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TopicService } from '../../services/topic';
+
+import { TopicService } from '@eristic/services/topic';
 
 @Component({
   selector: 'app-topic-details',
