@@ -2,9 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { ThemeToggle } from '@eristic/components/theme-toggle/theme-toggle';
-import { MobileNavService } from '@eristic/services/mobile-nav';
-import { TopicService } from '@eristic/services/topic';
+import { ThemeToggle } from '@eristic/app/components/theme-toggle/theme-toggle';
+import { MobileNavService } from '@eristic/app/services/mobile-nav';
+import { TopicService } from '@eristic/app/services/topic';
 
 @Component({
   selector: 'app-side-panel',

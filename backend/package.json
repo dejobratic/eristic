@@ -1,21 +1,43 @@
 {
   "name": "eristic-backend",
   "version": "1.0.0",
-  "description": "Eristic Backend API",
+  "description": "Eristic Backend API with LLM integration",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "echo 'Backend not implemented yet. Run this command to start the backend development server.'",
-    "build": "echo 'Backend not implemented yet. Run this command to build the backend.'",
-    "start": "echo 'Backend not implemented yet. Run this command to start the backend in production.'",
-    "test": "echo 'Backend not implemented yet. Run this command to run backend tests.'"
+    "dev": "nodemon --exec 'ts-node -r tsconfig-paths/register src/server.ts'",
+    "build": "tsc && tsc-alias",
+    "start": "node dist/server.js",
+    "test": "echo 'Tests not implemented yet. Run this command to run backend tests.'",
+    "clean": "rm -rf dist"
   },
   "keywords": [
     "api",
     "backend",
     "nodejs",
     "typescript",
-    "eristic"
+    "eristic",
+    "llm",
+    "ollama"
   ],
   "author": "Your Name",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "nodemon": "^3.0.2",
+    "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.16",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
 }

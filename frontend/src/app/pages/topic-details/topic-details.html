@@ -3,12 +3,71 @@
 
 <div class="main-content">
   <div class="container">
-    <h1>Topic Details</h1>
-    <div class="topic-card">
-      <h2>{{ topic }}</h2>
-      <p>You have selected the topic: <strong>{{ topic }}</strong></p>
-      <p>This is where you can display more information about this topic.</p>
-      <button (click)="goBack()" class="back-button">← Back to Topic Selector</button>
+    <h1>{{ topic }}</h1>
+    
+    <div class="content-section">
+      <!-- Loading State -->
+      @if (isLoading()) {
+        <div class="loading-card">
+          <div class="loading-spinner"></div>
+          <p>Generating response about "{{ topic }}"...</p>
+        </div>
+      }
+      
+      <!-- Error State -->
+      @else if (error()) {
+        <div class="error-card">
+          <div class="error-content">
+            <h3>Unable to Generate Response</h3>
+            @if (!isLLMAvailable) {
+              <p>The LLM service is currently unavailable. Please make sure Ollama is running.</p>
+            } @else {
+              <p>{{ error() }}</p>
+            }
+            <button (click)="regenerateResponse()" class="retry-button">
+              <i class="icon-refresh"></i>
+              Try Again
+            </button>
+          </div>
+        </div>
+      }
+      
+      <!-- Success State with LLM Response -->
+      @else if (llmResponse()) {
+        <div class="response-card">
+          <div class="response-meta">
+            <span class="model-badge">{{ llmResponse()?.model }}</span>
+            <span class="timestamp">{{ llmResponse()?.timestamp | date:'medium' }}</span>
+          </div>
+          
+          <div class="response-content">
+            <div class="response-text">{{ llmResponse()?.content }}</div>
+          </div>
+          
+          @if (llmResponse()?.tokens) {
+            <div class="token-info">
+              <small>
+                Tokens: {{ llmResponse()?.tokens?.total }} 
+                ({{ llmResponse()?.tokens?.prompt }} prompt + {{ llmResponse()?.tokens?.completion }} completion)
+              </small>
+            </div>
+          }
+          
+          <div class="response-actions">
+            <button (click)="regenerateResponse()" class="regenerate-button">
+              <i class="icon-refresh"></i>
+              Regenerate Response
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="navigation-section">
+      <button (click)="goBack()" class="back-button">
+        <i class="icon-arrow-left"></i>
+        Back to Topics
+      </button>
     </div>
   </div>
 </div>

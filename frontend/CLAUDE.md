@@ -7,24 +7,60 @@
 To ensure consistency, maintainability, and ease of navigation across the codebase, **always use aliased imports** when referencing internal modules and components.
 
 #### ✅ DO:
-Use the `@eristic` alias for any modules under the `src/app` folder.  
-For example, to import a component from `src/app/components/my-button`, write:
+Use the `@eristic` alias for any modules under the `src` folder.  
+For example:
 
 ```ts
-import { MyButtonComponent } from '@eristic/components/my-button';
+// Components
+import { MyButtonComponent } from '@eristic/app/components/my-button';
+
+// Services  
+import { UserService } from '@eristic/app/services/user.service';
+
+// Environment files
+import { environment } from '@eristic/environments/environment';
+
+// Any other src-level files
+import { AppConfig } from '@eristic/app/app.config';
 ```
 
-This applies to any custom module inside `src/app`
+#### Alias Configuration
 
-Aliases are configured in the `tsconfig.json` or `tsconfig.base.json` under the `paths` field. Do not use relative paths like `../../`.
+The `@eristic` alias is configured in `tsconfig.app.json`:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "@eristic/*": ["*"]
+    }
+  }
+}
+```
+
+This configuration allows importing from any location within `src/`:
+- `@eristic/app/*` → `src/app/*`
+- `@eristic/environments/*` → `src/environments/*`
+- `@eristic/assets/*` → `src/assets/*` (if exists)
+
+**Benefits:**
+- **Consistency** - All internal imports use the same pattern
+- **Maintainability** - Easy to refactor folder structures  
+- **Readability** - Clear distinction between external and internal modules
+- **IDE Support** - Full autocompletion and navigation
+
+Do not use relative paths like `../../`.
 
 #### ❌ DON'T:
 ```ts
 // ❌ Incorrect - relative import
 import { MyButtonComponent } from '../../components/my-button';
+import { environment } from '../../environments/environment';
 
 // ❌ Incorrect - absolute path without alias
 import { MyButtonComponent } from 'src/app/components/my-button';
+import { environment } from 'src/environments/environment';
 ```
 
 ---
@@ -235,6 +271,228 @@ To modify theme colors, update the CSS custom properties in `src/styles.css`:
 - **Maintainability** - Single source of truth for all theme colors
 
 **Rationale**: CSS custom properties provide the most maintainable and performant theming system, allowing easy color palette modifications while ensuring all components remain consistent across light and dark themes.
+
+---
+
+### 📁 File Naming Conventions
+
+**All TypeScript files must use kebab-case with descriptive suffixes** to follow Angular and industry standards.
+
+#### ✅ DO: Use kebab-case + descriptive suffixes
+
+```typescript
+// Services
+user-auth.service.ts
+llm.service.ts
+topic-management.service.ts
+
+// Components  
+user-profile.component.ts
+topic-details.component.ts
+mobile-menu-button.component.ts
+
+// Interfaces
+llm-provider.interface.ts
+user-data.interface.ts
+
+// Guards, Pipes, Directives
+auth.guard.ts
+currency-format.pipe.ts
+highlight.directive.ts
+
+// Models/Types
+user.model.ts
+api-response.type.ts
+```
+
+#### ❌ DON'T: Use other casing conventions
+
+```typescript
+// ❌ PascalCase (reserved for class names inside files)
+UserAuthService.ts
+LLMService.ts
+
+// ❌ camelCase 
+userAuthService.ts
+llmService.ts
+
+// ❌ snake_case
+user_auth_service.ts
+llm_service.ts
+
+// ❌ Too generic without suffix
+user.ts           // Should be user.service.ts or user.model.ts
+auth.ts           // Should be auth.service.ts or auth.guard.ts
+```
+
+#### Standard Angular File Suffixes
+
+| File Type | Suffix | Example |
+|-----------|--------|---------|
+| **Service** | `.service.ts` | `user-auth.service.ts` |
+| **Component** | `.component.ts` | `topic-details.component.ts` |
+| **Interface** | `.interface.ts` | `api-response.interface.ts` |
+| **Model** | `.model.ts` | `user.model.ts` |
+| **Guard** | `.guard.ts` | `auth.guard.ts` |
+| **Pipe** | `.pipe.ts` | `currency-format.pipe.ts` |
+| **Directive** | `.directive.ts` | `highlight.directive.ts` |
+| **Resolver** | `.resolver.ts` | `user-data.resolver.ts` |
+
+#### Benefits of Proper Naming
+
+- **Consistency** - Follows Angular CLI conventions
+- **Clarity** - File purpose is immediately clear
+- **IDE Support** - Better autocomplete and file navigation
+- **Team Onboarding** - New developers understand project structure instantly
+- **Refactoring** - Easier to find and rename related files
+
+#### File Organization Example
+
+```
+src/app/
+├── components/
+│   ├── user-profile/
+│   │   ├── user-profile.component.ts
+│   │   ├── user-profile.component.html
+│   │   └── user-profile.component.css
+│   └── topic-card/
+│       ├── topic-card.component.ts
+│       ├── topic-card.component.html
+│       └── topic-card.component.css
+├── services/
+│   ├── user-auth.service.ts
+│   ├── llm.service.ts
+│   └── topic-management.service.ts
+├── interfaces/
+│   ├── user.interface.ts
+│   └── api-response.interface.ts
+└── guards/
+    └── auth.guard.ts
+```
+
+**Rationale**: kebab-case with descriptive suffixes is the Angular community standard, matches Angular CLI output, provides immediate context about file purpose, and ensures consistency across teams and projects.
+
+---
+
+### 🔗 Service Architecture Standards
+
+**Services must follow single responsibility principle and composition patterns** for maintainability and reusability.
+
+#### ✅ DO: Extract common functionality into reusable services
+
+```typescript
+// ✅ Generic HTTP service for reusability
+@Injectable({ providedIn: 'root' })
+export class HttpService {
+  async get<T>(url: string): Promise<T> { /* ... */ }
+  async post<T, U>(url: string, data: U): Promise<T> { /* ... */ }
+  extractApiData<T>(response: HttpResponse<T>): T { /* ... */ }
+  buildUrl(base: string, path: string): string { /* ... */ }
+}
+
+// ✅ Domain-specific service using HTTP service
+@Injectable({ providedIn: 'root' })
+export class LLMService {
+  private readonly httpService = inject(HttpService);
+  
+  async generateTopicResponse(topic: string): Promise<LLMResponse> {
+    const url = this.httpService.buildUrl(this.apiUrl, '/api/llm/topic');
+    const response = await this.httpService.post(url, { topic });
+    return this.httpService.extractApiData(response);
+  }
+}
+```
+
+#### ❌ DON'T: Duplicate HTTP logic across services
+
+```typescript
+// ❌ Duplicating fetch logic in every service
+@Injectable({ providedIn: 'root' })
+export class LLMService {
+  async generateResponse(topic: string) {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic })
+    });
+    // Repeated error handling logic...
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  async getUsers() {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    // Same repeated error handling...
+  }
+}
+```
+
+#### Service Composition Pattern
+
+```typescript
+// Base HTTP service - handles all HTTP concerns
+http.service.ts
+├── Generic HTTP methods (GET, POST, PUT, DELETE)
+├── Error handling utilities
+├── URL building helpers
+└── Response extraction utilities
+
+// Domain services - use HTTP service for communication
+llm.service.ts
+├── inject(HttpService)
+├── Business logic for LLM operations
+├── State management (signals)
+└── Domain-specific error handling
+
+user.service.ts
+├── inject(HttpService) 
+├── User authentication logic
+├── User data management
+└── User-specific error handling
+```
+
+#### Service Responsibilities
+
+| Service Type | Responsibilities | Examples |
+|-------------|------------------|----------|
+| **HTTP Service** | Network communication, error handling, URL building | `http.service.ts` |
+| **Domain Services** | Business logic, state management, domain validation | `llm.service.ts`, `user.service.ts` |
+| **Utility Services** | Pure functions, calculations, formatting | `date-utils.service.ts` |
+| **State Services** | Global state, caching, persistence | `app-state.service.ts` |
+
+#### Benefits of Service Composition
+
+- **Reusability** - HTTP logic shared across all domain services  
+- **Maintainability** - HTTP changes only need updates in one place
+- **Testing** - Easy to mock HttpService for unit tests
+- **Consistency** - All HTTP calls follow same patterns
+- **Type Safety** - Generic types ensure proper request/response typing
+
+#### Dependency Injection Pattern
+
+```typescript
+// ✅ Use Angular's inject() function (modern approach)
+@Injectable({ providedIn: 'root' })
+export class LLMService {
+  private readonly httpService = inject(HttpService);
+  private readonly configService = inject(ConfigService);
+}
+
+// ✅ Also acceptable - constructor injection
+@Injectable({ providedIn: 'root' })
+export class LLMService {
+  constructor(
+    private httpService: HttpService,
+    private configService: ConfigService
+  ) {}
+}
+```
+
+**Rationale**: Service composition following single responsibility principle creates maintainable, testable, and reusable code that scales well as applications grow. The HTTP service handles all network concerns while domain services focus on business logic.
 
 ---
 

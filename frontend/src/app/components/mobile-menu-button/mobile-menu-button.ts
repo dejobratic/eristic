@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 
-import { MobileNavService } from '@eristic/services/mobile-nav';
+import { MobileNavService } from '@eristic/app/services/mobile-nav';
 
 @Component({
   selector: 'app-mobile-menu-button',

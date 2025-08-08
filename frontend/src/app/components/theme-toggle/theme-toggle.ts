@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 
-import { ThemeService } from '@eristic/services/theme';
+import { ThemeService } from '@eristic/app/services/theme';
 
 @Component({
   selector: 'app-theme-toggle',

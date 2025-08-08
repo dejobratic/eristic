@@ -1,8 +1,12 @@
 import { Injectable, signal } from '@angular/core';
 
+import { LLMResponse } from '@eristic/app/services/llm.service';
+
 export interface TopicItem {
   name: string;
   timestamp: Date;
+  llmResponse?: LLMResponse;
+  hasRequestedLLMResponse?: boolean;
 }
 
 @Injectable({
@@ -66,6 +70,51 @@ export class TopicService {
     return false;
   }
 
+  storeLLMResponse(topicName: string, response: LLMResponse) {
+    const currentTopics = this.topics();
+    const topicIndex = currentTopics.findIndex(t => t.name.toLowerCase() === topicName.toLowerCase());
+    
+    if (topicIndex >= 0) {
+      currentTopics[topicIndex].llmResponse = response;
+      currentTopics[topicIndex].hasRequestedLLMResponse = true;
+      this.topics.set([...currentTopics]);
+      this.saveTopics();
+    }
+  }
+
+  getLLMResponse(topicName: string): LLMResponse | null {
+    const topic = this.topics().find(t => t.name.toLowerCase() === topicName.toLowerCase());
+    return topic?.llmResponse || null;
+  }
+
+  hasRequestedLLMResponse(topicName: string): boolean {
+    const topic = this.topics().find(t => t.name.toLowerCase() === topicName.toLowerCase());
+    return topic?.hasRequestedLLMResponse || false;
+  }
+
+  clearLLMResponse(topicName: string) {
+    const currentTopics = this.topics();
+    const topicIndex = currentTopics.findIndex(t => t.name.toLowerCase() === topicName.toLowerCase());
+    
+    if (topicIndex >= 0) {
+      delete currentTopics[topicIndex].llmResponse;
+      currentTopics[topicIndex].hasRequestedLLMResponse = false;
+      this.topics.set([...currentTopics]);
+      this.saveTopics();
+    }
+  }
+
+  markLLMResponseRequested(topicName: string) {
+    const currentTopics = this.topics();
+    const topicIndex = currentTopics.findIndex(t => t.name.toLowerCase() === topicName.toLowerCase());
+    
+    if (topicIndex >= 0) {
+      currentTopics[topicIndex].hasRequestedLLMResponse = true;
+      this.topics.set([...currentTopics]);
+      this.saveTopics();
+    }
+  }
+
   private saveTopics() {
     localStorage.setItem('topic-history', JSON.stringify(this.topics()));
   }
@@ -77,7 +126,11 @@ export class TopicService {
         const topics = JSON.parse(saved);
         this.topics.set(topics.map((t: any) => ({
           ...t,
-          timestamp: new Date(t.timestamp)
+          timestamp: new Date(t.timestamp),
+          llmResponse: t.llmResponse ? {
+            ...t.llmResponse,
+            timestamp: new Date(t.llmResponse.timestamp)
+          } : undefined
         })));
       } catch (e) {
         console.error('Failed to load topic history', e);

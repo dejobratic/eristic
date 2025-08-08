@@ -1,81 +1,159 @@
 # Eristic Backend
 
-The backend API for the Eristic application.
+Backend API service for Eristic with integrated LLM support via Ollama.
 
-## Status: Not Implemented Yet
+## Features
 
-This folder is prepared for future backend development.
+- **Generic LLM Integration**: Supports multiple LLM providers with a unified interface
+- **Ollama Provider**: Built-in support for local Ollama models
+- **RESTful API**: Clean API endpoints for LLM interactions
+- **TypeScript**: Full TypeScript support with type safety
+- **Extensible Architecture**: Easy to add new LLM providers
 
-## Planned Features
+## Prerequisites
 
-- RESTful API endpoints for topic management
-- Database integration (PostgreSQL/MongoDB)
-- User authentication and authorization  
-- Topic collaboration features
-- Real-time updates via WebSockets
+- Node.js ≥ 18.0.0
+- npm ≥ 9.0.0
+- [Ollama](https://ollama.ai) installed and running locally
 
-## Planned Technology Stack
+## Quick Start
 
-- **Runtime**: Node.js
-- **Framework**: Express.js or Fastify
-- **Language**: TypeScript
-- **Database**: PostgreSQL with Prisma ORM or MongoDB with Mongoose
-- **Authentication**: JWT with refresh tokens
-- **Validation**: Zod or Joi
-- **Testing**: Jest + Supertest
-- **Documentation**: OpenAPI/Swagger
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-## Future Development Commands
+2. **Set Up Environment**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
 
-Once implemented, you'll be able to use:
+3. **Start Ollama** (if not already running)
+   ```bash
+   ollama serve
+   ```
+
+4. **Pull a Model** (e.g., Llama 2)
+   ```bash
+   ollama pull llama2
+   ```
+
+5. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Build for Production**
+   ```bash
+   npm run build
+   npm start
+   ```
+
+## API Endpoints
+
+### LLM Endpoints
+
+- `POST /api/llm/topic` - Generate response for a topic
+- `POST /api/llm/chat` - Generate response with message history
+- `GET /api/llm/status` - Check LLM provider status
+- `GET /api/llm/models` - Get available models
+
+### Health Check
+
+- `GET /health` - Health check endpoint
+
+## Environment Variables
 
 ```bash
-# From project root
-npm run backend:dev      # Start development server
-npm run backend:build    # Build for production
-npm run backend:test     # Run tests
+# Server Configuration
+PORT=3001
+NODE_ENV=development
+FRONTEND_URL=http://localhost:4200
 
-# Or from backend folder
-npm run dev             # Start development server
-npm run build           # Build for production  
-npm run test            # Run tests
+# LLM Provider Configuration
+LLM_PROVIDER=ollama
+LLM_BASE_URL=http://localhost:11434
+LLM_MODEL=llama2
+LLM_TEMPERATURE=0.7
+LLM_MAX_TOKENS=2048
 ```
 
-## API Design (Planned)
+## Adding New LLM Providers
 
-### Endpoints
+1. **Create Provider Class**
+   ```typescript
+   // src/providers/your-provider.provider.ts
+   import { LLMProvider } from '../interfaces/llm-provider.interface';
+   
+   export class YourProvider implements LLMProvider {
+     // Implement interface methods
+   }
+   ```
+
+2. **Register in LLM Service**
+   ```typescript
+   // src/services/llm.service.ts
+   case 'your-provider':
+     return new YourProvider(config);
+   ```
+
+3. **Configure Environment**
+   ```bash
+   LLM_PROVIDER=your-provider
+   YOUR_PROVIDER_API_KEY=your_api_key
+   ```
+
+## Project Structure
 
 ```
-GET    /api/topics              # Get all topics
-POST   /api/topics              # Create new topic
-GET    /api/topics/:id          # Get specific topic
-PUT    /api/topics/:id          # Update topic
-DELETE /api/topics/:id          # Delete topic
-
-GET    /api/users/:id/topics    # Get user's topics
-POST   /api/auth/login          # User login
-POST   /api/auth/register       # User registration
+backend/
+├── src/
+│   ├── interfaces/
+│   │   └── llm-provider.interface.ts
+│   ├── providers/
+│   │   └── ollama.provider.ts
+│   ├── services/
+│   │   └── llm.service.ts
+│   ├── routes/
+│   │   └── llm.routes.ts
+│   └── server.ts
+├── .env.example
+├── package.json
+├── tsconfig.json
+└── README.md
 ```
 
-### Database Schema (Planned)
+## Development
 
-```sql
--- Topics table
-CREATE TABLE topics (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
-  user_id UUID REFERENCES users(id)
-);
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build TypeScript to JavaScript
+- `npm run start` - Start production server
+- `npm run clean` - Clean build directory
 
--- Users table
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  username VARCHAR(100) UNIQUE NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
+## Troubleshooting
+
+### Ollama Connection Issues
+
+1. **Check if Ollama is running**:
+   ```bash
+   curl http://localhost:11434/api/tags
+   ```
+
+2. **Verify model is installed**:
+   ```bash
+   ollama list
+   ```
+
+3. **Pull required model**:
+   ```bash
+   ollama pull llama2
+   ```
+
+### CORS Issues
+
+Make sure `FRONTEND_URL` in your `.env` file matches your frontend URL.
+
+### Port Conflicts
+
+Change the `PORT` environment variable if 3001 is already in use.

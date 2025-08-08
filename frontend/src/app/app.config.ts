@@ -1,7 +1,7 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
-import { routes } from '@eristic/app.routes';
+import { routes } from '@eristic/app/app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
