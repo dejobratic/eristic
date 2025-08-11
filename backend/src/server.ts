@@ -1,8 +1,13 @@
 import 'dotenv/config';
 
-import { createLLMRoutes } from '@eristic/routes/llm.routes';
-import { LLMService } from '@eristic/services/llm.service';
-import { LLMConfig } from '@eristic/types/llm.types';
+import { SQLiteDebateRepository, SQLiteTopicRepository } from '@eristic/infrastructure/database/repositories';
+import { DatabaseConnectionManager } from '@eristic/infrastructure/database/connection/connection-manager';
+import { initializeDatabase } from '@eristic/infrastructure/database/scripts/init-database';
+import { createTopicRoutes } from '@eristic/api/routes/topic.routes';
+import { createLLMRoutes } from '@eristic/api/routes/llm.routes';
+import { errorHandler } from '@eristic/api/middleware/error.middleware';
+import { LLMService } from '@eristic/app/services/llm.service';
+import { LLMConfig } from '@eristic/app/types/llm.types';
 
 import cors from 'cors';
 import express from 'express';
@@ -30,53 +35,81 @@ const llmConfig: LLMConfig = {
   }
 };
 
-// Initialize LLM Service
-const llmService = new LLMService(llmConfig);
+// Initialize services
+async function initializeServices() {
+  // Initialize database
+  await initializeDatabase();
+  
+  // Initialize connection manager
+  const connectionManager = DatabaseConnectionManager.getInstance();
+  await connectionManager.initialize();
+  
+  // Initialize repositories
+  const debateRepository = new SQLiteDebateRepository();
+  const topicRepository = new SQLiteTopicRepository();
+  
+  // Initialize LLM Service
+  const llmService = new LLMService(llmConfig);
+  
+  return { debateRepository, topicRepository, llmService, connectionManager };
+}
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
+// Start server with proper initialization
+async function startServer() {
+  try {
+    // Initialize all services
+    const { topicRepository, llmService, connectionManager } = await initializeServices();
+    
+    // Health check endpoint
+    app.get('/health', (req, res) => {
+      res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+      });
+    });
 
-// LLM routes
-app.use('/api/llm', createLLMRoutes(llmService));
+    // Topic routes
+    app.use('/api/topics', createTopicRoutes(llmService, topicRepository));
+    
+    // LLM routes
+    app.use('/api/llm', createLLMRoutes(llmService));
 
-// Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({
-    error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
-  });
-});
+    // Global error handling middleware (must be last)
+    app.use(errorHandler);
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Not found',
-    message: `Route ${req.originalUrl} not found`
-  });
-});
+    // 404 handler (before error middleware)
+    app.use('*', (req, res) => {
+      res.status(404).json({
+        success: false,
+        error: 'Not found',
+        message: `Route ${req.originalUrl} not found`
+      });
+    });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Eristic backend server running on port ${PORT}`);
-  console.log(`📊 Health check available at http://localhost:${PORT}/health`);
-  console.log(`🤖 LLM Provider: ${llmConfig.provider} (${llmConfig.baseUrl})`);
-  console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`🚀 Eristic backend server running on port ${PORT}`);
+      console.log(`📊 Health check available at http://localhost:${PORT}/health`);
+      console.log(`🤖 LLM Provider: ${llmConfig.provider} (${llmConfig.baseUrl})`);
+      console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
-  process.exit(0);
-});
+    // Setup graceful shutdown
+    const gracefulShutdown = async (signal: string) => {
+      console.log(`${signal} received, shutting down gracefully`);
+      await connectionManager.close();
+      process.exit(0);
+    };
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
-  process.exit(0);
-});
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    
+  } catch (error) {
+    console.error('💥 Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();

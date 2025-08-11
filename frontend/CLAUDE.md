@@ -396,7 +396,7 @@ export class LLMService {
   private readonly httpService = inject(HttpService);
   
   async generateTopicResponse(topic: string): Promise<LLMResponse> {
-    const url = this.httpService.buildUrl(this.apiUrl, '/api/llm/topic');
+    const url = this.httpService.buildUrl(this.apiUrl, '/api/topics');
     const response = await this.httpService.post(url, { topic });
     return this.httpService.extractApiData(response);
   }

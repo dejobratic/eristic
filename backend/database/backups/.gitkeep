@@ -1,0 +1,2 @@
+# Keep backup directory in version control
+# Actual backup files are gitignored

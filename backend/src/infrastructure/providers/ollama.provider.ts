@@ -1,6 +1,6 @@
-import { LLMProvider } from '@eristic/providers/base.provider';
-import { HttpService } from '@eristic/services/http.service';
-import { LLMMessage, LLMResponse, LLMOptions, LLMConfig } from '@eristic/types/llm.types';
+import { LLMProvider } from '@eristic/infrastructure/providers/base.provider';
+import { HttpService } from '@eristic/app/services/http.service';
+import { LLMMessage, LLMResponse, LLMOptions, LLMConfig } from '@eristic/app/types/llm.types';
 
 interface OllamaGenerateRequest {
   model: string;

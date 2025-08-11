@@ -1,55 +1,96 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 
+import { HttpService, HttpResponse } from '@eristic/app/services/http.service';
 import { LLMResponse } from '@eristic/app/services/llm.service';
+import { environment } from '@eristic/environments/environment';
 
 export interface TopicItem {
+  id: string;
   name: string;
   timestamp: Date;
   llmResponse?: LLMResponse;
-  hasRequestedLLMResponse?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class TopicService {
+  private httpService = inject(HttpService);
   private topics = signal<TopicItem[]>([]);
+  private loadingState = signal<boolean>(false);
+  private apiUrl = environment.backendUrl;
 
   constructor() {
-    this.loadTopics();
+    this.loadTopicsFromDatabase();
+  }
+
+  async generateTopicContent(name: string): Promise<TopicItem> {
+    this.loadingState.set(true);
+    
+    try {
+      const url = this.httpService.buildUrl(this.apiUrl, '/api/topics');
+      const response = await this.httpService.post<HttpResponse<TopicItem>, { topic: string }>(
+        url, 
+        { topic: name }
+      );
+      
+      const topicItem = this.httpService.extractApiData(response);
+      
+      // Process dates
+      const processedTopicItem = {
+        ...topicItem,
+        timestamp: new Date(topicItem.timestamp),
+        createdAt: new Date(topicItem.createdAt),
+        updatedAt: new Date(topicItem.updatedAt),
+        llmResponse: topicItem.llmResponse ? {
+          ...topicItem.llmResponse,
+          timestamp: new Date(topicItem.llmResponse.timestamp)
+        } : undefined
+      };
+      
+      // Update local cache
+      this.updateTopicCache(processedTopicItem);
+      
+      return processedTopicItem;
+    } catch (error) {
+      console.error('Failed to generate topic content:', error);
+      throw error;
+    } finally {
+      this.loadingState.set(false);
+    }
   }
 
   addTopic(name: string) {
-    const newTopic: TopicItem = {
-      name,
-      timestamp: new Date()
-    };
-    
-    const currentTopics = this.topics();
-    const existingIndex = currentTopics.findIndex(t => t.name.toLowerCase() === name.toLowerCase());
-    
-    if (existingIndex >= 0) {
-      currentTopics[existingIndex].timestamp = new Date();
-    } else {
-      currentTopics.push(newTopic);
-    }
-    
-    this.topics.set([...currentTopics]);
-    this.saveTopics();
+    // Topics are now managed by the backend when LLM responses are generated
+    // This method is kept for compatibility but doesn't create topics directly
+    console.log(`Topic "${name}" will be created when LLM response is generated`);
   }
 
   getTopics() {
     return this.topics.asReadonly();
   }
 
-  deleteTopic(name: string) {
-    const currentTopics = this.topics();
-    const filteredTopics = currentTopics.filter(topic => topic.name !== name);
-    this.topics.set(filteredTopics);
-    this.saveTopics();
+  async deleteTopic(name: string) {
+    try {
+      const url = this.httpService.buildUrl(this.apiUrl, `/api/topics/${encodeURIComponent(name)}`);
+      const response = await this.httpService.delete<HttpResponse<any>>(url);
+      this.httpService.extractApiData(response);
+      
+      // Update local state
+      const currentTopics = this.topics();
+      const filteredTopics = currentTopics.filter(topic => topic.name !== name);
+      this.topics.set(filteredTopics);
+    } catch (error) {
+      console.error('Failed to delete topic:', error);
+      throw error;
+    }
   }
 
-  renameTopic(oldName: string, newName: string) {
+  async renameTopic(oldName: string, newName: string): Promise<boolean> {
+    // Note: Renaming topics requires backend support
+    // For now, keep the frontend-only logic as a fallback
     if (!newName.trim() || oldName === newName) return false;
     
     const currentTopics = this.topics();
@@ -63,7 +104,8 @@ export class TopicService {
     if (topicIndex >= 0) {
       currentTopics[topicIndex].name = newName.trim();
       this.topics.set([...currentTopics]);
-      this.saveTopics();
+      // TODO: Implement backend rename endpoint
+      console.warn('Topic rename is local only - backend support needed');
       return true;
     }
     
@@ -71,14 +113,28 @@ export class TopicService {
   }
 
   storeLLMResponse(topicName: string, response: LLMResponse) {
+    // Update local cache when LLM response is received
     const currentTopics = this.topics();
     const topicIndex = currentTopics.findIndex(t => t.name.toLowerCase() === topicName.toLowerCase());
     
     if (topicIndex >= 0) {
       currentTopics[topicIndex].llmResponse = response;
-      currentTopics[topicIndex].hasRequestedLLMResponse = true;
+      currentTopics[topicIndex].timestamp = response.timestamp;
       this.topics.set([...currentTopics]);
-      this.saveTopics();
+    } else {
+      // If topic doesn't exist locally, refresh from database
+      this.loadTopicsFromDatabase();
+    }
+  }
+
+  async getTopic(topicName: string): Promise<TopicItem | null> {
+    try {
+      const url = this.httpService.buildUrl(this.apiUrl, `/api/topics/${encodeURIComponent(topicName)}`);
+      const response = await this.httpService.get<HttpResponse<TopicItem>>(url);
+      return this.httpService.extractApiData(response);
+    } catch (error) {
+      console.error('Failed to get topic:', error);
+      return null;
     }
   }
 
@@ -87,54 +143,89 @@ export class TopicService {
     return topic?.llmResponse || null;
   }
 
-  hasRequestedLLMResponse(topicName: string): boolean {
-    const topic = this.topics().find(t => t.name.toLowerCase() === topicName.toLowerCase());
-    return topic?.hasRequestedLLMResponse || false;
-  }
-
-  clearLLMResponse(topicName: string) {
-    const currentTopics = this.topics();
-    const topicIndex = currentTopics.findIndex(t => t.name.toLowerCase() === topicName.toLowerCase());
-    
-    if (topicIndex >= 0) {
-      delete currentTopics[topicIndex].llmResponse;
-      currentTopics[topicIndex].hasRequestedLLMResponse = false;
-      this.topics.set([...currentTopics]);
-      this.saveTopics();
+  private async loadTopicsFromDatabase() {
+    try {
+      const url = this.httpService.buildUrl(this.apiUrl, '/api/topics');
+      const response = await this.httpService.get<HttpResponse<TopicItem[]>>(url);
+      const topics = this.httpService.extractApiData(response);
+      
+      // Convert date strings to Date objects
+      const processedTopics = topics.map(topic => ({
+        ...topic,
+        timestamp: new Date(topic.timestamp),
+        createdAt: new Date(topic.createdAt),
+        updatedAt: new Date(topic.updatedAt),
+        llmResponse: topic.llmResponse ? {
+          ...topic.llmResponse,
+          timestamp: new Date(topic.llmResponse.timestamp)
+        } : undefined
+      }));
+      
+      this.topics.set(processedTopics);
+    } catch (error) {
+      console.error('Failed to load topics from database:', error);
+      // Fallback to localStorage if database is unavailable
+      this.loadTopicsFromLocalStorage();
     }
   }
 
-  markLLMResponseRequested(topicName: string) {
-    const currentTopics = this.topics();
-    const topicIndex = currentTopics.findIndex(t => t.name.toLowerCase() === topicName.toLowerCase());
-    
-    if (topicIndex >= 0) {
-      currentTopics[topicIndex].hasRequestedLLMResponse = true;
-      this.topics.set([...currentTopics]);
-      this.saveTopics();
-    }
-  }
-
-  private saveTopics() {
-    localStorage.setItem('topic-history', JSON.stringify(this.topics()));
-  }
-
-  private loadTopics() {
+  private loadTopicsFromLocalStorage() {
     const saved = localStorage.getItem('topic-history');
     if (saved) {
       try {
         const topics = JSON.parse(saved);
-        this.topics.set(topics.map((t: any) => ({
-          ...t,
+        // Convert old format to new format
+        const convertedTopics = topics.map((t: any, index: number) => ({
+          id: t.id || `local-${index}`,
+          name: t.name,
           timestamp: new Date(t.timestamp),
+          createdAt: new Date(t.timestamp),
+          updatedAt: new Date(t.timestamp),
           llmResponse: t.llmResponse ? {
             ...t.llmResponse,
             timestamp: new Date(t.llmResponse.timestamp)
           } : undefined
-        })));
+        }));
+        this.topics.set(convertedTopics);
       } catch (e) {
-        console.error('Failed to load topic history', e);
+        console.error('Failed to load topic history from localStorage', e);
       }
     }
+  }
+
+  async refreshTopics() {
+    await this.loadTopicsFromDatabase();
+  }
+
+  /**
+   * Get topics synchronously from cache
+   */
+  getTopicsSync(): TopicItem[] {
+    return this.topics();
+  }
+
+  /**
+   * Update local cache with a new or updated topic
+   */
+  updateTopicCache(topicItem: TopicItem) {
+    const currentTopics = this.topics();
+    const existingIndex = currentTopics.findIndex(t => t.name.toLowerCase() === topicItem.name.toLowerCase());
+    
+    if (existingIndex >= 0) {
+      // Update existing topic
+      currentTopics[existingIndex] = topicItem;
+    } else {
+      // Add new topic to the beginning of the list
+      currentTopics.unshift(topicItem);
+    }
+    
+    this.topics.set([...currentTopics]);
+  }
+
+  /**
+   * Get loading state
+   */
+  getLoadingState() {
+    return this.loadingState.asReadonly();
   }
 }

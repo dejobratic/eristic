@@ -41,27 +41,37 @@ export class SidePanel {
     this.mobileNavService.close();
   }
 
-  deleteTopic(event: Event, topicName: string) {
+  async deleteTopic(event: Event, topicName: string) {
     event.stopPropagation();
     
     const confirmed = confirm(`Are you sure you want to delete "${topicName}" from your topic history?`);
     if (confirmed) {
-      this.topicService.deleteTopic(topicName);
+      try {
+        await this.topicService.deleteTopic(topicName);
+      } catch (error) {
+        alert('Failed to delete topic. Please try again.');
+        console.error('Failed to delete topic:', error);
+      }
     }
   }
 
-  renameTopic(event: Event, oldName: string) {
+  async renameTopic(event: Event, oldName: string) {
     event.stopPropagation();
     
     const newName = prompt(`Rename topic "${oldName}" to:`, oldName);
     if (newName !== null) {
-      const success = this.topicService.renameTopic(oldName, newName);
-      if (!success) {
-        if (newName.trim() === '') {
-          alert('Topic name cannot be empty.');
-        } else {
-          alert('A topic with this name already exists.');
+      try {
+        const success = await this.topicService.renameTopic(oldName, newName);
+        if (!success) {
+          if (newName.trim() === '') {
+            alert('Topic name cannot be empty.');
+          } else {
+            alert('A topic with this name already exists.');
+          }
         }
+      } catch (error) {
+        alert('Failed to rename topic. Please try again.');
+        console.error('Failed to rename topic:', error);
       }
     }
   }

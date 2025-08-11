@@ -46,13 +46,28 @@ export class LLMService {
   }
 
   async generateTopicResponse(topic: string): Promise<LLMResponse> {
+    // This method is deprecated - use TopicService.generateTopicContent instead
+    // Kept for backward compatibility
+    console.warn('LLMService.generateTopicResponse is deprecated. Use TopicService.generateTopicContent instead.');
+    
     this.loadingState.set(true);
     
     try {
-      const url = this.httpService.buildUrl(this.apiUrl, '/api/llm/topic');
-      const response = await this.httpService.post<HttpResponse<LLMResponse>, TopicRequest>(
+      const url = this.httpService.buildUrl(this.apiUrl, '/api/llm/chat');
+      const messages = [
+        {
+          role: 'system' as const,
+          content: 'You are a helpful assistant in an application called Eristic. When a user provides a topic, provide informative, engaging, and well-structured content about that topic. Be concise but comprehensive, and format your response in a readable way.'
+        },
+        {
+          role: 'user' as const,
+          content: `Please provide information and insights about the following topic: "${topic}"`
+        }
+      ];
+      
+      const response = await this.httpService.post<HttpResponse<LLMResponse>, { messages: any[] }>(
         url, 
-        { topic }
+        { messages }
       );
       
       const data = this.httpService.extractApiData(response);

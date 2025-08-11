@@ -1,4 +1,4 @@
-import { LLMMessage, LLMResponse, LLMOptions } from '@eristic/types/llm.types';
+import { LLMMessage, LLMResponse, LLMOptions } from '@eristic/app/types/llm.types';
 
 export interface LLMProvider {
   generateResponse(messages: LLMMessage[], options?: LLMOptions): Promise<LLMResponse>;

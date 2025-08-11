@@ -6,16 +6,20 @@
 
 **Backend structure must follow Node.js/Express.js industry conventions** for maintainability and developer familiarity.
 
-#### ✅ DO: Follow Node.js Folder Conventions
+#### ✅ DO: Follow Clean Architecture Conventions
 
 ```
 backend/src/
-├── controllers/        # Route handlers and request/response logic
-├── services/          # Business logic and core functionality  
-├── providers/         # External service integrations (APIs, databases)
-├── types/             # TypeScript type definitions and interfaces
-├── routes/            # Route definitions and middleware setup
-├── middleware/        # Express middleware (when needed)
+├── api/               # API layer - handles HTTP requests/responses
+│   ├── controllers/   # Route handlers and request/response logic
+│   ├── routes/        # Route definitions and middleware setup
+│   └── middleware/    # Express middleware (when needed)
+├── app/               # Application layer - business logic
+│   ├── services/      # Business logic and core functionality
+│   └── types/         # TypeScript type definitions and interfaces  
+├── infrastructure/    # Infrastructure layer - external concerns
+│   ├── database/      # Database repositories and connections
+│   └── providers/     # External service integrations (APIs)
 ├── config/            # Configuration management (when needed)
 └── server.ts          # Application entry point
 ```
@@ -30,16 +34,17 @@ backend/src/
 └── components/        # ❌ Frontend terminology, not backend
 ```
 
-#### Standard Folder Purposes
+#### Clean Architecture Layer Purposes
 
-| Folder | Purpose | Examples |
-|--------|---------|----------|
-| **controllers/** | Handle HTTP requests/responses, validate input, call services | `llm.controller.ts` |
-| **services/** | Business logic, data processing, external integrations | `llm.service.ts` |
-| **providers/** | External service implementations (APIs, databases) | `ollama.provider.ts` |
-| **types/** | TypeScript interfaces, types, enums | `llm.types.ts` |
-| **routes/** | Express route definitions and middleware | `llm.routes.ts` |
-| **middleware/** | Express middleware functions | `auth.middleware.ts` |
+| Layer/Folder | Purpose | Examples |
+|--------------|---------|----------|
+| **api/controllers/** | Handle HTTP requests/responses, validate input, call services | `llm.controller.ts` |
+| **api/routes/** | Express route definitions and middleware | `llm.routes.ts` |
+| **api/middleware/** | Express middleware functions | `auth.middleware.ts` |
+| **app/services/** | Business logic, data processing, orchestration | `llm.service.ts` |
+| **app/types/** | TypeScript interfaces, types, enums | `llm.types.ts`, `api.types.ts` |
+| **infrastructure/providers/** | External service implementations (APIs) | `ollama.provider.ts` |
+| **infrastructure/database/** | Database repositories, connections, migrations | `sqlite-topic.repository.ts` |
 | **config/** | Environment configuration, app settings | `database.config.ts` |
 
 ---
@@ -102,14 +107,15 @@ To ensure consistency, maintainability, and ease of navigation across the codeba
 
 #### ✅ DO: Use @eristic alias for internal modules
 
-Use the `@eristic` alias for any modules under the `src` folder:
+Use the `@eristic` alias for any modules under the `src` folder following clean architecture:
 
 ```typescript
-import { LLMController } from '@eristic/controllers/llm.controller';
-import { LLMService } from '@eristic/services/llm.service';
-import { LLMMessage, LLMResponse } from '@eristic/types/llm.types';
-import { APIResponse } from '@eristic/types/api.types';
-import { OllamaProvider } from '@eristic/providers/ollama.provider';
+import { LLMController } from '@eristic/api/controllers/llm.controller';
+import { LLMService } from '@eristic/app/services/llm.service';
+import { LLMMessage, LLMResponse } from '@eristic/app/types/llm.types';
+import { APIResponse } from '@eristic/app/types/api.types';
+import { OllamaProvider } from '@eristic/infrastructure/providers/ollama.provider';
+import { TopicRepository } from '@eristic/infrastructure/database/repositories';
 ```
 
 #### Alias Configuration
@@ -128,10 +134,12 @@ The `@eristic` alias is configured in `tsconfig.json`:
 ```
 
 This configuration allows importing from any location within `src/`:
-- `@eristic/controllers/*` → `src/controllers/*`
-- `@eristic/services/*` → `src/services/*`
-- `@eristic/types/*` → `src/types/*`
-- `@eristic/providers/*` → `src/providers/*`
+- `@eristic/api/controllers/*` → `src/api/controllers/*`
+- `@eristic/api/routes/*` → `src/api/routes/*`
+- `@eristic/app/services/*` → `src/app/services/*`
+- `@eristic/app/types/*` → `src/app/types/*`
+- `@eristic/infrastructure/providers/*` → `src/infrastructure/providers/*`
+- `@eristic/infrastructure/database/*` → `src/infrastructure/database/*`
 
 **Benefits:**
 - **Consistency** - All internal imports use the same pattern
@@ -143,11 +151,11 @@ This configuration allows importing from any location within `src/`:
 
 ```typescript
 // ❌ Relative imports
-import { LLMService } from '../services/llm.service';
-import { APIResponse } from '../../types/api.types';
+import { LLMService } from '../app/services/llm.service';
+import { APIResponse } from '../../app/types/api.types';
 
 // ❌ Too generic or confusing
-import * as Types from '@eristic/types';
+import * as Types from '@eristic/app/types';
 import { everything } from '@eristic/utils';
 ```
 
@@ -164,10 +172,10 @@ import { everything } from '@eristic/utils';
 import 'dotenv/config';
 
 // 2. Internal project imports (@eristic) - sorted alphabetically
-import { LLMController } from '@eristic/controllers/llm.controller';
-import { LLMService } from '@eristic/services/llm.service';
-import { APIResponse } from '@eristic/types/api.types';
-import { LLMMessage } from '@eristic/types/llm.types';
+import { LLMController } from '@eristic/api/controllers/llm.controller';
+import { LLMService } from '@eristic/app/services/llm.service';
+import { APIResponse } from '@eristic/app/types/api.types';
+import { LLMMessage } from '@eristic/app/types/llm.types';
 
 // 3. External library imports - sorted alphabetically
 import cors from 'cors';
@@ -186,11 +194,11 @@ import express from 'express';
 ```typescript
 import 'dotenv/config';
 
-import { LLMController } from '@eristic/controllers/llm.controller';
-import { OllamaProvider } from '@eristic/providers/ollama.provider';
-import { LLMService } from '@eristic/services/llm.service';
-import { APIResponse } from '@eristic/types/api.types';
-import { LLMConfig, LLMMessage } from '@eristic/types/llm.types';
+import { LLMController } from '@eristic/api/controllers/llm.controller';
+import { LLMService } from '@eristic/app/services/llm.service';
+import { APIResponse } from '@eristic/app/types/api.types';
+import { LLMConfig, LLMMessage } from '@eristic/app/types/llm.types';
+import { OllamaProvider } from '@eristic/infrastructure/providers/ollama.provider';
 
 import cors from 'cors';
 import express, { Request, Response } from 'express';
@@ -213,7 +221,7 @@ import express, { Request, Response } from 'express';
 #### Controller → Service → Provider Pattern
 
 ```typescript
-// controllers/llm.controller.ts - Handle HTTP requests
+// api/controllers/llm.controller.ts - Handle HTTP requests
 export class LLMController {
   constructor(private llmService: LLMService) {}
   
@@ -227,7 +235,7 @@ export class LLMController {
   }
 }
 
-// services/llm.service.ts - Business logic
+// app/services/llm.service.ts - Business logic
 export class LLMService {
   constructor(private provider: LLMProvider) {}
   
@@ -238,7 +246,7 @@ export class LLMService {
   }
 }
 
-// providers/ollama.provider.ts - External service integration
+// infrastructure/providers/ollama.provider.ts - External service integration
 export class OllamaProvider implements LLMProvider {
   async generateResponse(messages: LLMMessage[]): Promise<LLMResponse> {
     // External API calls only
@@ -251,9 +259,9 @@ export class OllamaProvider implements LLMProvider {
 
 | Layer | Responsibilities | Should NOT Do |
 |-------|------------------|---------------|
-| **Controllers** | Handle HTTP, validate requests, format responses | Business logic, external API calls |
-| **Services** | Business logic, data processing, orchestration | HTTP handling, direct external calls |
-| **Providers** | External API integration, data source abstraction | Business logic, HTTP responses |
+| **API (Controllers)** | Handle HTTP, validate requests, format responses | Business logic, external API calls |
+| **App (Services)** | Business logic, data processing, orchestration | HTTP handling, direct external calls |
+| **Infrastructure (Providers)** | External API integration, data source abstraction | Business logic, HTTP responses |
 
 ---
 
@@ -368,3 +376,181 @@ src/
 This allows teams to work on features independently with minimal conflicts.
 
 **Rationale**: Following established Node.js patterns ensures code is maintainable, testable, and familiar to other developers. The single-file-per-concern approach improves performance, git history, and makes the codebase easier to navigate as it grows.
+
+---
+
+### 💾 Database Architecture Standards
+
+**Use SQLite with repository pattern** for data persistence, providing clean abstraction and easy migration path to other databases.
+
+#### ✅ Database Folder Structure
+
+```
+backend/src/database/
+├── repositories/
+│   ├── base.repository.ts          # Abstract repository interface
+│   ├── sqlite-debate.repository.ts # SQLite implementation
+│   └── index.ts                    # Repository exports
+├── migrations/
+│   ├── 001_initial_schema.sql      # Database schema definitions
+│   └── migration-runner.ts         # Migration execution logic
+├── connection/
+│   ├── sqlite-connection.ts        # Database connection management
+│   └── connection-manager.ts       # Connection lifecycle (future)
+├── scripts/
+│   ├── init-database.ts            # Database initialization
+│   ├── migrate-from-localstorage.ts # Data migration utilities
+│   └── backup-database.ts          # Backup utilities
+└── seeds/
+    └── sample-topics.sql           # Development test data
+```
+
+#### Repository Pattern Implementation
+
+```typescript
+// ✅ Abstract repository interface (database-agnostic)
+export abstract class DebateRepository {
+  // Current single-topic methods
+  abstract saveTopic(name: string, response: LLMResponse): Promise<void>;
+  abstract getTopic(name: string): Promise<TopicItem | null>;
+  abstract getAllTopics(): Promise<TopicItem[]>;
+  
+  // Future multi-LLM debate methods
+  abstract createDebate(topic: string, participants: DebateParticipant[]): Promise<Debate>;
+  abstract addResponse(debateId: string, roundNumber: number, response: LLMResponse): Promise<void>;
+  abstract getDebateHistory(debateId: string): Promise<Round[]>;
+  
+  // Database lifecycle
+  abstract initialize(): Promise<void>;
+  abstract close(): Promise<void>;
+  abstract backup(): Promise<string>;
+}
+
+// ✅ SQLite implementation
+export class SQLiteDebateRepository extends DebateRepository {
+  private db = SQLiteConnection.getInstance();
+  // Implementation details...
+}
+```
+
+#### Service Integration Pattern
+
+```typescript
+// ✅ Controllers use repository for data persistence
+export class LLMController {
+  constructor(
+    private llmService: LLMService,
+    private repository: DebateRepository  // Injected repository
+  ) {}
+  
+  async generateTopicResponse(req: Request, res: Response): Promise<void> {
+    const topicName = req.body.topic.trim();
+    
+    // Check cache first
+    const existingTopic = await this.repository.getTopic(topicName);
+    if (existingTopic?.llmResponse) {
+      return res.json({ success: true, data: existingTopic.llmResponse });
+    }
+    
+    // Generate and save new response
+    const response = await this.llmService.generateTopicResponse(topicName);
+    await this.repository.saveTopic(topicName, response);
+    
+    res.json({ success: true, data: response });
+  }
+}
+```
+
+#### Database Scripts & Commands
+
+```json
+// package.json scripts for database management
+{
+  "scripts": {
+    "db:init": "Initialize database and run migrations",
+    "db:migrate": "Run pending migrations",
+    "db:seed": "Load development test data",
+    "db:backup": "Create database backup",
+    "db:migrate-localstorage": "Migrate data from localStorage"
+  }
+}
+```
+
+#### Migration Management
+
+```sql
+-- migrations/001_initial_schema.sql
+-- Clean, versioned SQL migrations
+CREATE TABLE IF NOT EXISTS topics (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  llm_response TEXT,               -- JSON serialized LLMResponse
+  model TEXT,
+  timestamp DATETIME,
+  tokens_prompt INTEGER,
+  tokens_completion INTEGER,
+  has_requested_response INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_topics_name ON topics(name);
+CREATE INDEX IF NOT EXISTS idx_topics_updated_at ON topics(updated_at);
+
+-- Track applied migrations
+INSERT OR REPLACE INTO migrations (id, name) VALUES ('001', '001_initial_schema.sql');
+```
+
+#### Environment Configuration
+
+```typescript
+// ✅ Environment-specific database paths
+const DB_PATHS = {
+  development: './database/eristic-dev.db',
+  test: './database/eristic-test.db', 
+  production: './database/eristic.db'
+};
+
+// ✅ Database optimization settings
+db.pragma('foreign_keys = ON');      // Enable referential integrity
+db.pragma('journal_mode = WAL');     // Better concurrency
+db.pragma('synchronous = NORMAL');   // Balanced durability/performance
+```
+
+#### Benefits of Repository Pattern
+
+- **Database Agnostic** - Easy migration to PostgreSQL/MongoDB when needed
+- **Clean Testing** - Mock repository for unit tests
+- **Consistent Interface** - Same methods work across different databases
+- **Future-Proof** - Schema ready for multi-LLM debate features
+- **Performance** - Built-in caching and connection pooling
+- **Reliability** - ACID compliance and proper error handling
+
+#### Development Workflow
+
+```bash
+# Initialize new development environment
+npm run db:init
+
+# Create new migration
+touch src/database/migrations/002_add_feature.sql
+
+# Apply migrations
+npm run db:migrate
+
+# Backup database
+npm run db:backup
+
+# Migrate existing localStorage data
+npm run db:migrate-localstorage ./path/to/localstorage-export.json
+```
+
+#### File Organization Standards
+
+- **One migration per file** - Sequential numbering (001_, 002_, etc.)
+- **SQL files for schema** - Pure SQL in migration files
+- **TypeScript for logic** - Migration runner and scripts in TypeScript
+- **Version control friendly** - Text-based SQL files easy to review
+
+**Rationale**: Repository pattern with SQLite provides immediate persistence without infrastructure complexity, while maintaining clean architecture for future database migrations. The folder structure separates concerns clearly and makes the system easy to maintain and extend.
