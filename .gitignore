@@ -57,7 +57,15 @@ coverage/
 tmp/
 temp/
 
-# Backend specific (for future use)
+# Backend specific
 backend/.env
 backend/uploads/
 backend/logs/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+backend/database/eristic*.db
+backend/database/eristic*.db-shm
+backend/database/eristic*.db-wal
