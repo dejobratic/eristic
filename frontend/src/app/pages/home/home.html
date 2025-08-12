@@ -1,22 +1,88 @@
-<app-mobile-menu-button></app-mobile-menu-button>
-<app-side-panel></app-side-panel>
-
-<div class="main-content">
-  <div class="container">
-    <h1>{{ title() }}</h1>
-    <form (ngSubmit)="onTopicSubmit()" class="topic-form">
-      <div class="form-group">
-        <label for="topic">Enter a topic:</label>
-        <input 
-          type="text" 
-          id="topic" 
-          name="topic"
-          [(ngModel)]="topic" 
-          placeholder="Type your topic here..." 
-          required
-        >
+<!-- Main Content -->
+<div class="home-content">
+  <div class="content-container">
+    <!-- Topic Form Card -->
+    <div class="topic-card">
+      <div class="card-header">
+        <h2 class="card-title">Start a New Debate</h2>
+        <p class="card-description">Choose a topic and select your preferred AI debater to begin your debate</p>
       </div>
-      <button type="submit" [disabled]="!topic || topic.trim().length === 0">Go to Topic</button>
-    </form>
+      
+      <form (ngSubmit)="onTopicSubmit()" class="topic-form">
+        <div class="form-group">
+          <label for="topic" class="form-label">Debate Topic</label>
+          <input 
+            type="text" 
+            id="topic" 
+            name="topic"
+            [(ngModel)]="topic" 
+            placeholder="Enter your topic here..." 
+            required
+            class="form-input"
+          >
+        </div>
+        
+        <div class="form-group">
+          <label for="debater" class="form-label">AI Debater</label>
+          <select 
+            id="debater"
+            [value]="selectedDebaterId() || 'default'"
+            (change)="onDebaterChange($event)"
+            class="form-select">
+            <option value="default">Default Assistant</option>
+            @for (debater of activeDebaters; track debater.id) {
+              <option [value]="debater.id">{{ debater.name }}</option>
+            }
+            <option value="create-new" class="create-new-option">+ Create New Debater</option>
+          </select>
+          
+          @if (selectedDebaterId() && selectedDebaterId() !== 'default') {
+            <div class="debater-info">
+              @for (debater of activeDebaters; track debater.id) {
+                @if (debater.id === selectedDebaterId()) {
+                  <div class="debater-card">
+                    <h4 class="debater-name">{{ debater.name }}</h4>
+                    <p class="debater-description">{{ debater.description }}</p>
+                    <span class="debater-model">Model: {{ debater.model }}</span>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+        
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            [disabled]="!topic || topic.trim().length === 0"
+            class="btn-primary">
+            <i class="icon-arrow-right"></i>
+            <span>Start Debate</span>
+          </button>
+          <p class="form-hint">Fill in the topic and select a debater to begin your debate</p>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Quick Stats Card -->
+    <div class="stats-card">
+      <div class="card-header">
+        <h3 class="card-title">Platform Overview</h3>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">{{ activeDebaters.length }}</div>
+          <div class="stat-label">Active Debaters</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">∞</div>
+          <div class="stat-label">Topics Possible</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">AI</div>
+          <div class="stat-label">Powered</div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

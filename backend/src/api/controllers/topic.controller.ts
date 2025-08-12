@@ -8,8 +8,15 @@ export class TopicController {
   constructor(private topicService: TopicService) {}
 
   generateTopicContent = asyncHandler(async (req: Request, res: Response) => {
-    const { topic } = req.body;
-    const result = await this.topicService.generateTopicContent(topic);
+    const { topic, debaterId } = req.body;
+    
+    // If debaterId is provided, use the debater-specific method
+    let result;
+    if (debaterId) {
+      result = await this.topicService.generateTopicContentWithDebater(topic, debaterId);
+    } else {
+      result = await this.topicService.generateTopicContent(topic);
+    }
 
     res.json({
       success: true,

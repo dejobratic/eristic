@@ -1,0 +1,99 @@
+<header class="modern-header">
+  <!-- Logo and Brand -->
+  <div class="header-brand">
+    <button class="logo-button" (click)="navigateToHome()">
+      <div class="logo">
+        <div class="logo-icon">
+          <span class="logo-symbol">ε</span>
+        </div>
+        <span class="logo-text">Eristic</span>
+      </div>
+    </button>
+  </div>
+
+
+  <!-- Header Actions -->
+  <div class="header-actions">
+    <!-- LLM Status Indicator -->
+    <div class="status-container">
+      @if (isLLMOnline) {
+        <div class="status-indicator status-online">
+          <div class="status-dot"></div>
+          <span class="status-text">Ollama Online</span>
+        </div>
+      } @else {
+        <div class="status-indicator status-offline">
+          <div class="status-dot"></div>
+          <span class="status-text">Ollama Offline</span>
+        </div>
+      }
+    </div>
+
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" (click)="toggleTheme()" title="Toggle theme">
+      @if (currentTheme() === 'dark') {
+        <i class="icon-sun"></i>
+        <span class="theme-text">Light</span>
+      } @else {
+        <i class="icon-moon"></i>
+        <span class="theme-text">Dark</span>
+      }
+    </button>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [attr.aria-expanded]="isMobileMenuOpen()">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Menu Overlay -->
+@if (isMobileMenuOpen()) {
+  <div class="mobile-menu-overlay" (click)="closeMobileMenu()">
+    <nav class="mobile-menu" role="navigation" (click)="$event.stopPropagation()">
+      <div class="mobile-menu-header">
+        <div class="mobile-logo">
+          <span class="logo-symbol">ε</span>
+          <span class="logo-text">Eristic</span>
+        </div>
+        <button class="mobile-menu-close" (click)="closeMobileMenu()">
+          <i class="icon-close"></i>
+        </button>
+      </div>
+      
+      <div class="mobile-menu-body">
+        <div class="mobile-menu-message">
+          <p>Use the sidebar menu for navigation</p>
+        </div>
+      </div>
+      
+      <div class="mobile-menu-footer">
+        <div class="mobile-status">
+          @if (isLLMOnline) {
+            <div class="status-indicator status-online">
+              <div class="status-dot"></div>
+              <span class="status-text">Ollama Online</span>
+            </div>
+          } @else {
+            <div class="status-indicator status-offline">
+              <div class="status-dot"></div>
+              <span class="status-text">Ollama Offline</span>
+            </div>
+          }
+        </div>
+        
+        <button class="mobile-theme-toggle" (click)="toggleTheme()">
+          @if (currentTheme() === 'dark') {
+            <i class="icon-sun"></i>
+            <span>Switch to Light</span>
+          } @else {
+            <i class="icon-moon"></i>
+            <span>Switch to Dark</span>
+          }
+        </button>
+      </div>
+    </nav>
+  </div>
+}

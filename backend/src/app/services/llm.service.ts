@@ -1,6 +1,7 @@
 import { OllamaProvider } from '@eristic/infrastructure/providers/ollama.provider';
 import { LLMProvider } from '@eristic/infrastructure/providers/base.provider';
 import { LLMMessage, LLMResponse, LLMConfig } from '@eristic/app/types/llm.types';
+import { Debater } from '@eristic/app/types/debater.types';
 import { ValidationException } from '@eristic/app/types/exceptions.types';
 
 export class LLMService {
@@ -42,6 +43,39 @@ export class LLMService {
       return await this.provider.generateResponse(messages, this.config.options);
     } catch (error) {
       throw new Error(`Failed to generate topic response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async generateTopicResponseWithDebater(topic: string, debater: Debater): Promise<LLMResponse> {
+    if (!topic || typeof topic !== 'string') {
+      throw new ValidationException('Topic is required and must be a string');
+    }
+    if (!debater) {
+      throw new ValidationException('Debater is required');
+    }
+
+    const messages: LLMMessage[] = [
+      {
+        role: 'system',
+        content: debater.systemPrompt
+      },
+      {
+        role: 'user',
+        content: `Please provide information and insights about the following topic: "${topic}"`
+      }
+    ];
+
+    // Create provider with debater's specific model
+    const debaterConfig: LLMConfig = {
+      ...this.config,
+      model: debater.model
+    };
+    const debaterProvider = this.createProvider(debaterConfig);
+
+    try {
+      return await debaterProvider.generateResponse(messages, debaterConfig.options);
+    } catch (error) {
+      throw new Error(`Failed to generate topic response with debater "${debater.name}": ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

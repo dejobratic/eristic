@@ -1,10 +1,11 @@
 import 'dotenv/config';
 
-import { SQLiteDebateRepository, SQLiteTopicRepository } from '@eristic/infrastructure/database/repositories';
+import { SQLiteDebateRepository, SQLiteTopicRepository, SQLiteDebaterRepository } from '@eristic/infrastructure/database/repositories';
 import { DatabaseConnectionManager } from '@eristic/infrastructure/database/connection/connection-manager';
 import { initializeDatabase } from '@eristic/infrastructure/database/scripts/init-database';
 import { createTopicRoutes } from '@eristic/api/routes/topic.routes';
 import { createLLMRoutes } from '@eristic/api/routes/llm.routes';
+import { createDebaterRoutes } from '@eristic/api/routes/debater.routes';
 import { errorHandler } from '@eristic/api/middleware/error.middleware';
 import { LLMService } from '@eristic/app/services/llm.service';
 import { LLMConfig } from '@eristic/app/types/llm.types';
@@ -47,18 +48,19 @@ async function initializeServices() {
   // Initialize repositories
   const debateRepository = new SQLiteDebateRepository();
   const topicRepository = new SQLiteTopicRepository();
+  const debaterRepository = new SQLiteDebaterRepository();
   
   // Initialize LLM Service
   const llmService = new LLMService(llmConfig);
   
-  return { debateRepository, topicRepository, llmService, connectionManager };
+  return { debateRepository, topicRepository, debaterRepository, llmService, connectionManager };
 }
 
 // Start server with proper initialization
 async function startServer() {
   try {
     // Initialize all services
-    const { topicRepository, llmService, connectionManager } = await initializeServices();
+    const { topicRepository, debaterRepository, llmService, connectionManager } = await initializeServices();
     
     // Health check endpoint
     app.get('/health', (req, res) => {
@@ -70,7 +72,10 @@ async function startServer() {
     });
 
     // Topic routes
-    app.use('/api/topics', createTopicRoutes(llmService, topicRepository));
+    app.use('/api/topics', createTopicRoutes(llmService, topicRepository, debaterRepository));
+    
+    // Debater routes
+    app.use('/api/debaters', createDebaterRoutes(debaterRepository));
     
     // LLM routes
     app.use('/api/llm', createLLMRoutes(llmService));

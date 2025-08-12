@@ -1,0 +1,130 @@
+<aside class="sidebar" [class.sidebar-collapsed]="isCollapsed()" role="navigation" aria-label="Main navigation sidebar">
+  <!-- Collapse Toggle (Mobile Only) -->
+  <button class="collapse-toggle mobile-only" (click)="toggleCollapse()" title="Toggle sidebar">
+    <i class="icon-collapse" [class.rotated]="isCollapsed()"></i>
+  </button>
+
+  <!-- Sidebar Content -->
+  <div class="sidebar-content">
+    <!-- Navigation Section -->
+    <nav class="sidebar-nav" aria-label="Primary navigation">
+      <div class="nav-section">
+        <h3 class="nav-section-title" id="nav-heading">Navigate</h3>
+        <a routerLink="/" class="nav-item" routerLinkActive="nav-item-active" [routerLinkActiveOptions]="{exact: true}" aria-describedby="nav-heading">
+          <div class="nav-item-icon" aria-hidden="true">
+            <i class="icon-home"></i>
+          </div>
+          <span class="nav-item-text">Home</span>
+        </a>
+        <a routerLink="/debaters" class="nav-item" routerLinkActive="nav-item-active" aria-describedby="nav-heading">
+          <div class="nav-item-icon" aria-hidden="true">
+            <i class="icon-debaters"></i>
+          </div>
+          <span class="nav-item-text">Debaters</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Recent Topics -->
+    <section class="recent-section" aria-label="Recent topics">
+      <div class="section-header">
+        <h3 class="section-title">Recent Topics</h3>
+        <button class="refresh-btn" (click)="refreshRecentTopics()" title="Refresh" [class.refreshing]="isRefreshing()" [disabled]="isRefreshing()">
+          <i class="icon-refresh" [class.spinning]="isRefreshing()"></i>
+        </button>
+      </div>
+      
+      <!-- Search Topics -->
+      @if (recentTopics().length > 0) {
+        <div class="search-container" role="search" aria-label="Search topics">
+          <div class="search-input-wrapper">
+            <i class="icon-search" aria-hidden="true"></i>
+            <input 
+              type="text" 
+              [(ngModel)]="searchTerm"
+              (input)="filterTopics()"
+              placeholder="Search topics... (⌘K)"
+              class="search-input"
+              title="Search through your recent topics (Ctrl/Cmd + K)"
+              accesskey="k"
+              aria-label="Search topics"
+              aria-describedby="search-help">
+            @if (searchTerm) {
+              <button class="search-clear" (click)="clearSearch()" title="Clear search" aria-label="Clear search term">
+                <i class="icon-close-mini" aria-hidden="true"></i>
+              </button>
+            }
+          </div>
+          <div id="search-help" class="sr-only">Use Ctrl+K or Cmd+K to quickly focus the search. Press Escape to clear.</div>
+        </div>
+      }
+      
+      @if (filteredTopics().length > 0) {
+        <div class="recent-topics">
+          @for (topic of filteredTopics(); track topic.originalName) {
+            <div class="topic-item">
+              @if (topic.isEditing) {
+                <!-- Edit Mode -->
+                <div class="topic-edit-mode">
+                  <input 
+                    type="text" 
+                    [(ngModel)]="topic.name"
+                    class="topic-edit-input"
+                    (keydown.enter)="saveRename(topic.originalName!, topic.name)"
+                    (keydown.escape)="cancelRename(topic.originalName!)"
+                    #editInput>
+                  <div class="edit-actions">
+                    <button class="edit-save-btn" (click)="saveRename(topic.originalName!, topic.name)" title="Save">
+                      <i class="icon-check"></i>
+                    </button>
+                    <button class="edit-cancel-btn" (click)="cancelRename(topic.originalName!)" title="Cancel">
+                      <i class="icon-close"></i>
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <!-- View Mode -->
+                <button class="topic-content-btn" (click)="navigateToTopic(topic.name)">
+                  <div class="topic-content">
+                    <div class="topic-name">{{ topic.name }}</div>
+                    <div class="topic-meta">
+                      <span class="topic-debater">{{ topic.debaterName }}</span>
+                      <span class="topic-time">{{ topic.timestamp | date:'short' }}</span>
+                    </div>
+                  </div>
+                  <i class="icon-arrow-right topic-arrow"></i>
+                </button>
+                <div class="topic-actions">
+                  <button class="topic-rename-btn" (click)="startRename(topic.name)" title="Rename topic">
+                    <i class="icon-edit"></i>
+                  </button>
+                  <button class="topic-delete-btn" (click)="deleteTopic(topic.name)" title="Delete topic">
+                    <i class="icon-delete"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          @if (searchTerm) {
+            <i class="icon-search-empty"></i>
+            <p class="empty-text">No topics found</p>
+            <p class="empty-hint">Try adjusting your search term</p>
+          } @else {
+            <i class="icon-topic-empty"></i>
+            <p class="empty-text">No recent topics</p>
+            <p class="empty-hint">Start a debate to see topics here</p>
+          }
+        </div>
+      }
+    </section>
+  </div>
+
+</aside>
+
+<!-- Sidebar Backdrop (Mobile Only) -->
+@if (!isCollapsed()) {
+  <div class="sidebar-backdrop mobile-only" (click)="toggleCollapse()"></div>
+}

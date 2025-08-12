@@ -30,12 +30,19 @@ export class OllamaProvider implements LLMProvider {
 
   constructor(config: LLMConfig) {
     this.baseUrl = config.baseUrl || 'http://localhost:11434';
-    this.defaultModel = config.model || 'llama2';
+    this.defaultModel = config.model || 'llama3.2:latest';
     this.httpService = new HttpService();
   }
 
   async generateResponse(messages: LLMMessage[], options?: LLMOptions): Promise<LLMResponse> {
     const model = options?.model || this.defaultModel;
+    
+    // Validate model exists before trying to use it
+    const availableModels = await this.getAvailableModels();
+    if (availableModels.length > 0 && !availableModels.includes(model)) {
+      throw new Error(`Model "${model}" is not available. Available models: ${availableModels.join(', ')}`);
+    }
+    
     const prompt = this.formatMessagesForOllama(messages);
     
     const payload: OllamaGenerateRequest = {

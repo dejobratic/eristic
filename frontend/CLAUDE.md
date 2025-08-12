@@ -565,7 +565,7 @@ input[type="text"], textarea {
 ```html
 <!-- Mobile: Overlay navigation -->
 <app-mobile-menu-button></app-mobile-menu-button>
-<app-side-panel></app-side-panel>
+<app-sidebar></app-sidebar>
 
 <div class="main-content">
   <!-- Content with mobile padding -->

@@ -9,6 +9,7 @@ export interface TopicItem {
   name: string;
   timestamp: Date;
   llmResponse?: LLMResponse;
+  debaterId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,14 +27,19 @@ export class TopicService {
     this.loadTopicsFromDatabase();
   }
 
-  async generateTopicContent(name: string): Promise<TopicItem> {
+  async generateTopicContent(name: string, debaterId?: string): Promise<TopicItem> {
     this.loadingState.set(true);
     
     try {
       const url = this.httpService.buildUrl(this.apiUrl, '/api/topics');
-      const response = await this.httpService.post<HttpResponse<TopicItem>, { topic: string }>(
+      const payload: { topic: string; debaterId?: string } = { topic: name };
+      if (debaterId) {
+        payload.debaterId = debaterId;
+      }
+      
+      const response = await this.httpService.post<HttpResponse<TopicItem>, typeof payload>(
         url, 
-        { topic: name }
+        payload
       );
       
       const topicItem = this.httpService.extractApiData(response);

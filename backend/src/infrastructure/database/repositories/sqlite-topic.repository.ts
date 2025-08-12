@@ -8,21 +8,22 @@ import { TopicRepository, TopicItem } from './topic.repository';
 export class SQLiteTopicRepository extends TopicRepository {
   private db = SQLiteConnection.getInstance();
 
-  async saveTopic(name: string, response: LLMResponse): Promise<void> {
+  async saveTopic(name: string, response: LLMResponse, debaterId?: string): Promise<void> {
     const now = new Date();
     
     const upsert = this.db.prepare(`
       INSERT INTO topics (
         id, name, llm_response, model, timestamp, 
-        tokens_prompt, tokens_completion, 
+        tokens_prompt, tokens_completion, debater_id,
         created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(name) DO UPDATE SET
         llm_response = excluded.llm_response,
         model = excluded.model,
         timestamp = excluded.timestamp,
         tokens_prompt = excluded.tokens_prompt,
         tokens_completion = excluded.tokens_completion,
+        debater_id = excluded.debater_id,
         updated_at = excluded.updated_at
     `);
 
@@ -34,6 +35,7 @@ export class SQLiteTopicRepository extends TopicRepository {
       response.timestamp.toISOString(),
       response.tokens?.prompt || 0,
       response.tokens?.completion || 0,
+      debaterId || 'default',
       now.toISOString(),
       now.toISOString()
     );
@@ -49,6 +51,7 @@ export class SQLiteTopicRepository extends TopicRepository {
       id: row.id,
       name: row.name,
       llmResponse: row.llm_response ? JSON.parse(row.llm_response) : undefined,
+      debaterId: row.debater_id,
       timestamp: new Date(row.timestamp || row.created_at),
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at)
@@ -63,6 +66,7 @@ export class SQLiteTopicRepository extends TopicRepository {
       id: row.id,
       name: row.name,
       llmResponse: row.llm_response ? JSON.parse(row.llm_response) : undefined,
+      debaterId: row.debater_id,
       timestamp: new Date(row.timestamp || row.created_at),
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at)

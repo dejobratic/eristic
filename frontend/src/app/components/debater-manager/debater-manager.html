@@ -1,0 +1,201 @@
+<div class="debater-manager">
+  <div class="manager-header">
+    <div class="header-title-section">
+      <button class="back-btn" routerLink="/" title="Back to Topics">
+        <i class="icon-back"></i>
+      </button>
+      <h2>Manage Debaters</h2>
+    </div>
+  </div>
+
+  <!-- Create/Edit Form -->
+  @if (showCreateForm()) {
+    <div class="form-overlay">
+      <form class="debater-form" (ngSubmit)="saveDebater()">
+        <div class="form-header">
+          <h3>{{ isEditing ? 'Edit Debater' : 'Create New Debater' }}</h3>
+          <button type="button" class="close-btn" (click)="closeForm()">
+            <i class="icon-close"></i>
+          </button>
+        </div>
+
+        <!-- Form Errors -->
+        @if (formErrors().length > 0) {
+          <div class="form-errors">
+            @for (error of formErrors(); track error) {
+              <div class="error-item">{{ error }}</div>
+            }
+          </div>
+        }
+
+        <div class="form-body">
+          <div class="form-group">
+            <label for="name">Name *</label>
+            <input
+              type="text"
+              id="name"
+              [value]="formData().name || ''"
+              (input)="updateFormField('name', $any($event.target).value)"
+              placeholder="Enter debater name"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description *</label>
+            <textarea
+              id="description"
+              [value]="formData().description || ''"
+              (input)="updateFormField('description', $any($event.target).value)"
+              placeholder="Describe this debater's characteristics and purpose"
+              rows="3"
+              required></textarea>
+          </div>
+
+          <div class="form-group">
+            <div class="model-label-section">
+              <label for="model">Model *</label>
+              <button 
+                type="button" 
+                class="refresh-models-btn"
+                (click)="loadAvailableModels()"
+                [disabled]="loadingModels()"
+                title="Refresh available models">
+                <i class="icon-refresh"></i>
+              </button>
+            </div>
+            @if (loadingModels()) {
+              <div class="model-loading">
+                <span>Loading available models...</span>
+              </div>
+            } @else {
+              <select
+                id="model"
+                [value]="formData().model || ''"
+                (change)="updateFormField('model', $any($event.target).value)"
+                required>
+                <option value="">Select a model</option>
+                @for (model of availableModels(); track model) {
+                  <option [value]="model">{{ model }}</option>
+                }
+              </select>
+            }
+            @if (availableModels().length === 0 && !loadingModels()) {
+              <div class="model-fallback">
+                <input
+                  type="text"
+                  [value]="formData().model || ''"
+                  (input)="updateFormField('model', $any($event.target).value)"
+                  placeholder="Enter model name (e.g., llama2, codellama)"
+                  required>
+                <small class="fallback-note">Unable to load models. Please enter manually.</small>
+              </div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="systemPrompt">System Prompt *</label>
+            <textarea
+              id="systemPrompt"
+              [value]="formData().systemPrompt || ''"
+              (input)="updateFormField('systemPrompt', $any($event.target).value)"
+              placeholder="Enter the system prompt that defines this debater's personality and behavior"
+              rows="6"
+              required></textarea>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [checked]="formData().isActive || false"
+                (change)="updateFormField('isActive', $any($event.target).checked)">
+              <span class="checkbox-text">Active (available for topic generation)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="cancel-btn" (click)="closeForm()">
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="save-btn"
+            [disabled]="loading()">
+            {{ loading() ? 'Saving...' : (isEditing ? 'Update' : 'Create') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Debaters List -->
+  <div class="debaters-list">
+    @if (debaters().length === 0) {
+      <div class="empty-state">
+        <p>No debaters configured yet.</p>
+        <button class="create-btn" (click)="openCreateForm()">
+          Create your first debater
+        </button>
+      </div>
+    } @else {
+      @for (debater of debaters(); track debater.id) {
+        <div class="debater-card" [class.inactive]="!debater.isActive">
+          <div class="debater-header">
+            <div class="debater-info">
+              <h3 class="debater-name">
+                {{ debater.name }}
+                @if (!debater.isActive) {
+                  <span class="inactive-badge">Inactive</span>
+                }
+                @if (debater.id === 'default') {
+                  <span class="default-badge">Default</span>
+                }
+              </h3>
+              <p class="debater-description">{{ debater.description }}</p>
+            </div>
+            <div class="debater-actions">
+              <button 
+                class="action-btn edit-btn"
+                (click)="openEditForm(debater)"
+                title="Edit debater">
+                <i class="icon-edit"></i>
+              </button>
+              <button 
+                class="action-btn toggle-btn"
+                [class.active]="debater.isActive"
+                (click)="toggleDebaterActive(debater)"
+                [title]="debater.isActive ? 'Deactivate debater' : 'Activate debater'">
+                <i [class]="debater.isActive ? 'icon-active' : 'icon-inactive'"></i>
+              </button>
+              @if (debater.id !== 'default') {
+                <button 
+                  class="action-btn delete-btn"
+                  (click)="deleteDebater(debater)"
+                  title="Delete debater">
+                  <i class="icon-delete"></i>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="debater-details">
+            <div class="detail-item">
+              <span class="detail-label">Model:</span>
+              <span class="detail-value model-value">{{ debater.model }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Created:</span>
+              <span class="detail-value">{{ debater.createdAt | date:'short' }}</span>
+            </div>
+          </div>
+
+          <div class="system-prompt-preview">
+            <div class="prompt-label">System Prompt:</div>
+            <div class="prompt-content">{{ debater.systemPrompt }}</div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

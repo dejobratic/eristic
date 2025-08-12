@@ -1,0 +1,36 @@
+<div class="debater-selector">
+  <label for="debater-select" class="selector-label">
+    Choose Debater:
+  </label>
+  
+  @if (loadingDebaters()) {
+    <div class="loading-state">
+      <span>Loading debaters...</span>
+    </div>
+  } @else {
+    <select 
+      id="debater-select"
+      class="debater-dropdown"
+      [value]="selectedDebaterId() || ''"
+      [disabled]="disabled()"
+      (change)="onDebaterChange($event)">
+      
+      <option value="">Default Assistant</option>
+      
+      @for (debater of activeDebaters(); track debater.id) {
+        <option [value]="debater.id">
+          {{ debater.name }}
+        </option>
+      }
+    </select>
+  }
+  
+  @if (selectedDebater; as debater) {
+    <div class="debater-info">
+      <p class="debater-description">{{ debater.description }}</p>
+      <div class="debater-meta">
+        <span class="model-info">Model: {{ debater.model }}</span>
+      </div>
+    </div>
+  }
+</div>
