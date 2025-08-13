@@ -54,12 +54,23 @@
         <div class="form-actions">
           <button 
             type="submit" 
-            [disabled]="!topic || topic.trim().length === 0"
+            [disabled]="!topic || topic.trim().length === 0 || isGenerating()"
             class="btn-primary">
-            <i class="icon-arrow-right"></i>
-            <span>Start Debate</span>
+            @if (isGenerating()) {
+              <i class="icon-loading"></i>
+              <span>Generating...</span>
+            } @else {
+              <i class="icon-arrow-right"></i>
+              <span>Start Debate</span>
+            }
           </button>
-          <p class="form-hint">Fill in the topic and select a debater to begin your debate</p>
+          <p class="form-hint">
+            @if (isGenerating()) {
+              <span>Generating debate content with {{ selectedDebaterId() === 'default' ? 'Default Assistant' : getSelectedDebaterName() }}...</span>
+            } @else {
+              <span>Fill in the topic and select a debater to begin your debate</span>
+            }
+          </p>
         </div>
       </form>
     </div>

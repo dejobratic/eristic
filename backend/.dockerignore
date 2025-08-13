@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Development files
+src
+tsconfig.json
+*.ts
+!*.d.ts
+
+# Build artifacts
+dist
+build
+
+# Database files (will be handled by volumes)
+database/*.db
+database/*.db-shm
+database/*.db-wal
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+
+# Git
+.git
+.gitignore
+README.md
+
+# IDE
+.vscode
+.idea
+
+# Logs
+logs
+*.log
+
+# Testing
+coverage
+*.test.js
+*.spec.js
+
+# OS files
+.DS_Store
+Thumbs.db

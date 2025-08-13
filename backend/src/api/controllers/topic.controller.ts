@@ -10,13 +10,8 @@ export class TopicController {
   generateTopicContent = asyncHandler(async (req: Request, res: Response) => {
     const { topic, debaterId } = req.body;
     
-    // If debaterId is provided, use the debater-specific method
-    let result;
-    if (debaterId) {
-      result = await this.topicService.generateTopicContentWithDebater(topic, debaterId);
-    } else {
-      result = await this.topicService.generateTopicContent(topic);
-    }
+    // Use the unified method that accepts optional debater
+    const result = await this.topicService.generateTopicContent(topic, debaterId);
 
     res.json({
       success: true,

@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: eristic-backend-dev
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DATABASE_PATH=/app/database/eristic-dev.db
+    volumes:
+      - db_data_dev:/app/database
+      - ./backend/src:/app/src:ro  # Read-only source mounting for development
+    ports:
+      - "3001:3001"
+    networks:
+      - eristic-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: eristic-frontend-dev
+    environment:
+      - BACKEND_URL=http://localhost:3001
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - eristic-network
+    restart: unless-stopped
+
+volumes:
+  db_data_dev:
+    driver: local
+
+networks:
+  eristic-network:
+    driver: bridge

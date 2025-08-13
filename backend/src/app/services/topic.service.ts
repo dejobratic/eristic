@@ -10,7 +10,7 @@ export class TopicService {
     private debaterRepository: DebaterRepository
   ) {}
 
-  async generateTopicContent(topicName: string): Promise<TopicItem> {
+  async generateTopicContent(topicName: string, debaterId?: string): Promise<TopicItem> {
     if (!topicName || typeof topicName !== 'string') {
       throw new ValidationException('Topic is required and must be a string');
     }
@@ -26,45 +26,25 @@ export class TopicService {
       return existingTopic;
     }
 
-    // Generate new content via LLM (using default debater if no specific one is cached)
-    const response = await this.llmService.generateTopicResponse(trimmedTopic);
+    let response;
+    let finalDebaterId = debaterId || 'default';
+
+    if (debaterId && debaterId !== 'default') {
+      // Get the specific debater
+      const debater = await this.debaterRepository.getDebater(debaterId);
+      if (!debater) {
+        throw new NotFoundException('Debater');
+      }
+      // Generate with specific debater
+      response = await this.llmService.generateTopicResponseWithDebater(trimmedTopic, debater);
+    } else {
+      // Generate with default debater
+      response = await this.llmService.generateTopicResponse(trimmedTopic);
+      finalDebaterId = 'default';
+    }
     
     // Save to repository
-    await this.topicRepository.saveTopic(trimmedTopic, response, 'default');
-    
-    // Return the saved topic
-    const savedTopic = await this.topicRepository.getTopic(trimmedTopic);
-    if (!savedTopic) {
-      throw new Error('Failed to retrieve saved topic');
-    }
-    
-    return savedTopic;
-  }
-
-  async generateTopicContentWithDebater(topicName: string, debaterId: string): Promise<TopicItem> {
-    if (!topicName || typeof topicName !== 'string') {
-      throw new ValidationException('Topic is required and must be a string');
-    }
-    if (!debaterId || typeof debaterId !== 'string') {
-      throw new ValidationException('Debater ID is required and must be a string');
-    }
-
-    const trimmedTopic = topicName.trim();
-    if (!trimmedTopic) {
-      throw new ValidationException('Topic cannot be empty');
-    }
-
-    // Get the debater
-    const debater = await this.debaterRepository.getDebater(debaterId);
-    if (!debater) {
-      throw new NotFoundException('Debater');
-    }
-
-    // Generate new content via LLM with the specific debater
-    const response = await this.llmService.generateTopicResponseWithDebater(trimmedTopic, debater);
-    
-    // Save to repository with debater ID
-    await this.topicRepository.saveTopic(trimmedTopic, response, debaterId);
+    await this.topicRepository.saveTopic(trimmedTopic, response, finalDebaterId);
     
     // Return the saved topic
     const savedTopic = await this.topicRepository.getTopic(trimmedTopic);

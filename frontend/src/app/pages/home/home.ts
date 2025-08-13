@@ -15,6 +15,7 @@ import { DebaterService, Debater } from '@eristic/app/services/debater.service';
 export class Home {
   topic = '';
   selectedDebaterId = signal<string | null>('default');
+  isGenerating = signal<boolean>(false);
   
   private router = inject(Router);
   private topicService = inject(TopicService);
@@ -25,13 +26,35 @@ export class Home {
     return this.debaterService.getDebatersSync().filter(d => d.isActive);
   }
 
-  onTopicSubmit() {
-    if (this.topic.trim()) {
+  getSelectedDebaterName(): string {
+    const debaterId = this.selectedDebaterId();
+    if (!debaterId || debaterId === 'default') {
+      return 'Default Assistant';
+    }
+    const debater = this.activeDebaters.find(d => d.id === debaterId);
+    return debater?.name || 'Unknown Debater';
+  }
+
+  async onTopicSubmit() {
+    if (this.topic.trim() && !this.isGenerating()) {
       const debaterId = this.selectedDebaterId();
-      // Navigate with debater selection
-      this.router.navigate(['/topic', this.topic.trim()], {
-        state: { debaterId: debaterId }
-      });
+      this.isGenerating.set(true);
+      
+      try {
+        // Generate topic content immediately with selected debater
+        await this.topicService.generateTopicContent(this.topic.trim(), debaterId === 'default' ? undefined : debaterId || undefined);
+        
+        // Navigate to the generated topic
+        this.router.navigate(['/topic', this.topic.trim()]);
+      } catch (error) {
+        console.error('Failed to generate topic:', error);
+        // Navigate anyway - topic page will handle the error
+        this.router.navigate(['/topic', this.topic.trim()], {
+          state: { debaterId: debaterId }
+        });
+      } finally {
+        this.isGenerating.set(false);
+      }
     }
   }
 

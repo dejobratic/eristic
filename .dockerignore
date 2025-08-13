@@ -1,0 +1,56 @@
+# Dependencies
+node_modules
+*/node_modules
+npm-debug.log*
+
+# Build outputs (will be built in container)
+dist
+*/dist
+build
+*/build
+.angular
+*/.angular
+
+# Development files
+*.md
+README.md
+CHANGELOG.md
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+
+# Logs
+logs
+*.log
+
+# Testing
+coverage
+*/coverage
+*.test.js
+*.spec.js
+
+# Database files (handled by volumes)
+backend/database/*.db
+backend/database/*.db-shm
+backend/database/*.db-wal
+
+# Docker files (avoid recursion)
+Dockerfile*
+docker-compose*.yml
+.dockerignore

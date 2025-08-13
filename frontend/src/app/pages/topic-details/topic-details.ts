@@ -90,22 +90,16 @@ export class TopicDetails implements OnInit, OnDestroy {
             this.selectedDebaterId.set(topicData.debaterId);
           }
         } else {
-          // No cached response - check if we have a pre-selected debater from home page
+          // No cached response found
           this.hasGeneratedResponse.set(false);
           
-          // Auto-generate if debater was pre-selected from home page
-          if (this.selectedDebaterId()) {
-            await this.generateLLMResponse();
-          }
+          // Don't auto-generate here anymore - generation should happen from home page
+          // If user comes directly to this page, they can manually generate
         }
       } catch (error) {
         console.error('Failed to load topic from database:', error);
-        // If database fails but we have a pre-selected debater, try to generate
+        // Database failed - user can manually generate if needed
         this.hasGeneratedResponse.set(false);
-        
-        if (this.selectedDebaterId()) {
-          await this.generateLLMResponse();
-        }
       }
     }
   }
