@@ -92,6 +92,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  padding: 24px;
 }
 
 /* Tabs Navigation */
@@ -137,12 +138,6 @@
   background-color: var(--color-primary);
 }
 
-/* Tab Content */
-.tab-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px 24px;
-}
 
 /* Loading State */
 .loading-state {
@@ -171,16 +166,18 @@
 /* Settings Section */
 .settings-section {
   max-width: 100%;
+  flex: 1;
 }
 
 .section-header {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  text-align: center;
 }
 
 .section-header h3 {
   color: var(--text-primary);
-  margin: 0 0 6px 0;
-  font-size: 1.1rem;
+  margin: 0 0 8px 0;
+  font-size: 1.2rem;
   font-weight: 600;
 }
 
@@ -247,12 +244,16 @@
 .appearance-settings {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  align-items: center;
 }
 
 .theme-options {
   display: flex;
-  gap: 16px;
+  gap: 20px;
+  justify-content: center;
+  width: 100%;
+  max-width: 300px;
 }
 
 .theme-option {
@@ -476,7 +477,7 @@
     font-size: 1.1rem;
   }
   
-  .tab-content {
+  .modal-content {
     padding: 16px;
   }
   
@@ -491,7 +492,9 @@
   }
   
   .theme-options {
-    gap: 12px;
+    gap: 16px;
+    flex-direction: column;
+    max-width: 200px;
   }
   
   .section-actions {
