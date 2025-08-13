@@ -1,0 +1,306 @@
+<!-- Debate Execution Page -->
+<div class="debate-content">
+  <div class="content-container">
+    
+    @if (isLoadingDebate()) {
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading debate...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <i class="icon-error"></i>
+        <h2>Error Loading Debate</h2>
+        <p>{{ error() }}</p>
+        <div class="error-actions">
+          <button (click)="loadDebate(debateId())" class="btn-primary">
+            <i class="icon-retry"></i>
+            <span>Retry</span>
+          </button>
+          <button (click)="goHome()" class="btn-secondary">
+            <i class="icon-home"></i>
+            <span>Back Home</span>
+          </button>
+        </div>
+      </div>
+    } @else if (debate()) {
+      
+      <!-- Debate Header -->
+      <div class="debate-header">
+        <div class="header-navigation">
+          <button (click)="goBack()" class="back-button">
+            <i class="icon-arrow-left"></i>
+            <span>Back</span>
+          </button>
+        </div>
+        
+        <div class="header-content">
+          <div class="debate-status-badge" [class]="getStatusIcon(debate()!.status)">
+            <i [class]="getStatusIcon(debate()!.status)"></i>
+            <span>{{ getStatusText(debate()!.status) }}</span>
+          </div>
+          
+          <h1 class="debate-topic">{{ debate()!.topic }}</h1>
+          
+          <div class="debate-meta">
+            <div class="meta-item">
+              <i class="icon-rounds"></i>
+              <span>Round {{ debate()!.currentRound }} of {{ debate()!.totalRounds }}</span>
+            </div>
+            <div class="meta-item">
+              <i class="icon-participants"></i>
+              <span>{{ participants().length }} Participants</span>
+            </div>
+            <div class="meta-item">
+              <i class="icon-moderator"></i>
+              <span>{{ getDebaterName(debate()!.moderatorId) }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="header-actions">
+          @if (canStartDebate()) {
+            <button (click)="startDebate()" class="btn-primary">
+              <i class="icon-play"></i>
+              <span>Start Debate</span>
+            </button>
+          }
+          
+          @if (canPauseDebate()) {
+            <button (click)="pauseDebate()" class="btn-secondary">
+              <i class="icon-pause"></i>
+              <span>Pause</span>
+            </button>
+          }
+          
+          @if (canResumeDebate()) {
+            <button (click)="resumeDebate()" class="btn-primary">
+              <i class="icon-play"></i>
+              <span>Resume</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-section">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="progressPercentage()"></div>
+        </div>
+        <div class="progress-text">
+          Progress: {{ progressPercentage() }}% Complete
+        </div>
+      </div>
+
+      @if (debate()!.status === 'pending') {
+        <!-- Pending State -->
+        <div class="pending-state">
+          <div class="pending-content">
+            <i class="icon-ready"></i>
+            <h2>Debate Ready to Start</h2>
+            <p>All participants are configured and ready to begin the debate.</p>
+            
+            <div class="participants-preview">
+              <h3>Participants:</h3>
+              <div class="participants-list">
+                @for (participant of participants(); track participant.id) {
+                  <div class="participant-preview">
+                    <div class="participant-info">
+                      <strong>{{ getDebaterName(participant.debaterId) }}</strong>
+                      <span class="participant-position">Position {{ participant.position }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+            
+            <button (click)="startDebate()" class="btn-primary start-debate-btn">
+              <i class="icon-play"></i>
+              <span>Start Multi-Debate</span>
+            </button>
+          </div>
+        </div>
+        
+      } @else if (isDebateComplete()) {
+        <!-- Completed State -->
+        <div class="completed-state">
+          <div class="completed-content">
+            <i class="icon-completed-large"></i>
+            <h2>Debate Completed</h2>
+            <p>All rounds have been completed. Review the full debate below.</p>
+            
+            <div class="final-stats">
+              <div class="stat-item">
+                <strong>{{ debate()!.totalRounds }}</strong>
+                <span>Rounds Completed</span>
+              </div>
+              <div class="stat-item">
+                <strong>{{ responses().length }}</strong>
+                <span>Total Responses</span>
+              </div>
+              <div class="stat-item">
+                <strong>{{ participants().length }}</strong>
+                <span>Participants</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      } @else {
+        <!-- Active/Paused Debate State -->
+        
+        @if (currentRound() && debate()!.status === 'active') {
+          <!-- Current Round Section -->
+          <div class="current-round-section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <i class="icon-current-round"></i>
+                Current Round {{ currentRound()!.roundNumber }}
+              </h2>
+              @if (currentRound()!.moderationSummary) {
+                <div class="moderator-summary">
+                  <div class="summary-header">
+                    <i class="icon-moderator"></i>
+                    <span>Moderator Summary</span>
+                  </div>
+                  <div class="summary-content">{{ currentRound()!.moderationSummary }}</div>
+                </div>
+              }
+            </div>
+
+            @if (currentParticipant()) {
+              <div class="current-participant-card">
+                <div class="participant-header">
+                  <div class="participant-avatar">
+                    <i class="icon-debater"></i>
+                  </div>
+                  <div class="participant-info">
+                    <h3>{{ getDebaterName(currentParticipant()!.debaterId) }}'s Turn</h3>
+                    <p class="participant-description">
+                      {{ getDebaterInfo(currentParticipant()!.debaterId)?.description || 'AI Debater' }}
+                    </p>
+                  </div>
+                  <div class="turn-indicator">
+                    <span class="turn-label">Current Turn</span>
+                  </div>
+                </div>
+                
+                @if (canGenerateResponse()) {
+                  <div class="generate-section">
+                    <button (click)="generateResponse()" class="btn-primary generate-btn">
+                      <i class="icon-generate"></i>
+                      <span>Generate Response</span>
+                    </button>
+                    <button (click)="skipParticipant()" class="btn-outline skip-btn">
+                      <i class="icon-skip"></i>
+                      <span>Skip Turn</span>
+                    </button>
+                  </div>
+                } @else if (isGeneratingResponse()) {
+                  <div class="generating-state">
+                    <div class="generating-spinner"></div>
+                    <span>Generating response...</span>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (nextParticipant()) {
+              <div class="next-participant-info">
+                <span class="next-label">Next:</span>
+                <span class="next-name">{{ getDebaterName(nextParticipant()!.debaterId) }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        @if (debate()!.status === 'paused') {
+          <div class="paused-state">
+            <i class="icon-paused-large"></i>
+            <h2>Debate Paused</h2>
+            <p>The debate has been paused. Resume when ready to continue.</p>
+            <button (click)="resumeDebate()" class="btn-primary">
+              <i class="icon-play"></i>
+              <span>Resume Debate</span>
+            </button>
+          </div>
+        }
+      }
+
+      <!-- Debate History -->
+      @if (getCompletedRounds().length > 0) {
+        <div class="debate-history">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="icon-history"></i>
+              Debate History
+            </h2>
+          </div>
+          
+          <div class="rounds-timeline">
+            @for (round of getCompletedRounds(); track round.id) {
+              <div class="round-card">
+                <div class="round-header">
+                  <h3 class="round-title">Round {{ round.roundNumber }}</h3>
+                  <span class="round-date">{{ formatDate(round.createdAt) }}</span>
+                </div>
+                
+                @if (round.moderationSummary) {
+                  <div class="round-summary">
+                    <div class="summary-label">
+                      <i class="icon-moderator"></i>
+                      <span>Moderator Summary</span>
+                    </div>
+                    <div class="summary-text">{{ round.moderationSummary }}</div>
+                  </div>
+                }
+                
+                <div class="round-responses">
+                  @for (response of getRoundResponses(round.id); track response.id) {
+                    <div class="response-card">
+                      <div class="response-header">
+                        <div class="responder-info">
+                          <i class="icon-debater"></i>
+                          <span class="responder-name">{{ getDebaterName(response.debaterId) }}</span>
+                        </div>
+                        <span class="response-time">{{ formatResponseDate(response) }}</span>
+                      </div>
+                      <div class="response-content">{{ response.content }}</div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Current Round Responses -->
+      @if (currentRound() && getCurrentRoundResponses().length > 0) {
+        <div class="current-round-responses">
+          <div class="section-header">
+            <h2 class="section-title">
+              <i class="icon-responses"></i>
+              Round {{ currentRound()!.roundNumber }} Responses
+            </h2>
+          </div>
+          
+          <div class="responses-list">
+            @for (response of getCurrentRoundResponses(); track response.id) {
+              <div class="response-card current">
+                <div class="response-header">
+                  <div class="responder-info">
+                    <i class="icon-debater"></i>
+                    <span class="responder-name">{{ getDebaterName(response.debaterId) }}</span>
+                  </div>
+                  <span class="response-time">{{ formatResponseDate(response) }}</span>
+                </div>
+                <div class="response-content">{{ response.content }}</div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,162 @@
+<!-- Settings Modal -->
+<div class="modal-backdrop" (click)="onBackdropClick($event)">
+  <div class="modal-dialog" role="dialog" aria-labelledby="settings-title" aria-modal="true">
+    
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2 id="settings-title" class="modal-title">
+        <i class="icon-settings"></i>
+        <span>Settings</span>
+      </h2>
+      <button (click)="closeModal()" class="close-button" aria-label="Close settings">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+
+    <!-- Modal Content -->
+    <div class="modal-content">
+      
+      <!-- Tabs Navigation -->
+      <div class="tabs-nav">
+        <button 
+          (click)="setActiveTab('debate')"
+          [class.active]="activeTab() === 'debate'"
+          class="tab-button">
+          <i class="icon-debate"></i>
+          <span>Debate Settings</span>
+        </button>
+        <button 
+          (click)="setActiveTab('appearance')"
+          [class.active]="activeTab() === 'appearance'"
+          class="tab-button">
+          <i class="icon-appearance"></i>
+          <span>Appearance</span>
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content">
+        
+        @if (isLoading()) {
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Loading settings...</p>
+          </div>
+        } @else {
+          
+          <!-- Debate Settings Tab -->
+          @if (activeTab() === 'debate') {
+            <div class="settings-section">
+              <div class="section-header">
+                <h3>Default Debate Settings</h3>
+              </div>
+
+              <div class="settings-grid">
+                <div class="setting-item">
+                  <label for="numDebaters">Debaters</label>
+                  <select 
+                    id="numDebaters"
+                    [value]="debateSettings().numDebaters"
+                    (change)="updateNumDebaters(+$any($event.target).value)"
+                    class="setting-select">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                  </select>
+                </div>
+
+                <div class="setting-item">
+                  <label for="numRounds">Rounds</label>
+                  <select 
+                    id="numRounds"
+                    [value]="debateSettings().numRounds"
+                    (change)="updateNumRounds(+$any($event.target).value)"
+                    class="setting-select">
+                    @for (round of [1,2,3,4,5,6,7,8,9,10]; track round) {
+                      <option [value]="round">{{ round }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="setting-item">
+                  <label for="turnOrder">Turn Order</label>
+                  <select 
+                    id="turnOrder"
+                    [value]="debateSettings().turnOrder"
+                    (change)="updateTurnOrder($any($event.target).value)"
+                    class="setting-select">
+                    <option value="fixed">Fixed</option>
+                    <option value="random">Random</option>
+                    <option value="moderator-selected">Moderator</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="section-actions">
+                <button 
+                  (click)="saveDebateSettings()"
+                  [disabled]="isSaving() || !isSettingsValid()"
+                  class="btn-primary">
+                  @if (isSaving()) {
+                    <span>Saving...</span>
+                  } @else {
+                    <span>Save</span>
+                  }
+                </button>
+                <button 
+                  (click)="resetDebateSettings()"
+                  [disabled]="isSaving()"
+                  class="btn-outline">
+                  <span>Reset</span>
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Appearance Settings Tab -->
+          @if (activeTab() === 'appearance') {
+            <div class="settings-section">
+              <div class="section-header">
+                <h3>Appearance</h3>
+              </div>
+
+              <div class="appearance-settings">
+                <div class="theme-options">
+                  <button 
+                    (click)="setTheme('light')"
+                    [class.active]="currentTheme() === 'light'"
+                    class="theme-option">
+                    <div class="theme-preview light-preview">
+                      <div class="preview-header"></div>
+                      <div class="preview-content">
+                        <div class="preview-text"></div>
+                        <div class="preview-text short"></div>
+                      </div>
+                    </div>
+                    <span class="theme-label">Light</span>
+                  </button>
+                  
+                  <button 
+                    (click)="setTheme('dark')"
+                    [class.active]="currentTheme() === 'dark'"
+                    class="theme-option">
+                    <div class="theme-preview dark-preview">
+                      <div class="preview-header"></div>
+                      <div class="preview-content">
+                        <div class="preview-text"></div>
+                        <div class="preview-text short"></div>
+                      </div>
+                    </div>
+                    <span class="theme-label">Dark</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+        }
+      </div>
+    </div>
+  </div>
+</div>

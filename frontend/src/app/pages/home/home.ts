@@ -1,10 +1,12 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
-import { TopicService } from '@eristic/app/services/topic';
-import { DebaterService, Debater } from '@eristic/app/services/debater.service';
+import { DebateService } from '@eristic/app/services/debate.service';
+import { DebaterService } from '@eristic/app/services/debater.service';
+import { Debate } from '@eristic/app/types/debate.types';
+
 
 @Component({
   selector: 'app-home',
@@ -12,66 +14,55 @@ import { DebaterService, Debater } from '@eristic/app/services/debater.service';
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
-export class Home {
-  topic = '';
-  selectedDebaterId = signal<string | null>('default');
-  isGenerating = signal<boolean>(false);
+
+export class Home implements OnInit {
+  debates = signal<Debate[]>([]);
+  quickTopic = '';
   
   private router = inject(Router);
-  private topicService = inject(TopicService);
+  private debateService = inject(DebateService);
   private debaterService = inject(DebaterService);
-  
-  // Get active debaters for the dropdown
-  get activeDebaters(): Debater[] {
-    return this.debaterService.getDebatersSync().filter(d => d.isActive);
+
+  quickTopics = [
+    "AI vs Human Creativity",
+    "Universal Basic Income", 
+    "Space Exploration Priority",
+    "Social Media Regulation",
+    "Climate Action"
+  ];
+
+  ngOnInit() {
+    this.loadRecentDebates();
   }
 
-  getSelectedDebaterName(): string {
-    const debaterId = this.selectedDebaterId();
-    if (!debaterId || debaterId === 'default') {
-      return 'Default Assistant';
-    }
-    const debater = this.activeDebaters.find(d => d.id === debaterId);
-    return debater?.name || 'Unknown Debater';
-  }
-
-  async onTopicSubmit() {
-    if (this.topic.trim() && !this.isGenerating()) {
-      const debaterId = this.selectedDebaterId();
-      this.isGenerating.set(true);
-      
-      try {
-        // Generate topic content immediately with selected debater
-        await this.topicService.generateTopicContent(this.topic.trim(), debaterId === 'default' ? undefined : debaterId || undefined);
-        
-        // Navigate to the generated topic
-        this.router.navigate(['/topic', this.topic.trim()]);
-      } catch (error) {
-        console.error('Failed to generate topic:', error);
-        // Navigate anyway - topic page will handle the error
-        this.router.navigate(['/topic', this.topic.trim()], {
-          state: { debaterId: debaterId }
-        });
-      } finally {
-        this.isGenerating.set(false);
-      }
+  async loadRecentDebates() {
+    try {
+      await this.debateService.refreshDebates();
+      this.debates.set(this.debateService.getDebatesSync());
+    } catch (error) {
+      console.error('Failed to load debates:', error);
     }
   }
 
-  onDebaterChange(event: Event) {
-    const select = event.target as HTMLSelectElement;
-    const value = select.value;
-    
-    if (value === 'create-new') {
-      // Navigate to debaters page to create a new debater
-      this.router.navigate(['/debaters'], { 
-        queryParams: { action: 'create' } 
-      });
-      // Reset selection to default
-      this.selectedDebaterId.set('default');
-      select.value = 'default';
-    } else {
-      this.selectedDebaterId.set(value || 'default');
+  // Set topic from quick suggestions and go directly to setup
+  setTopic(topic: string) {
+    this.router.navigate(['/debate-setup', topic]);
+  }
+
+  // Create debate with topic
+  createDebateWithTopic() {
+    if (this.quickTopic.trim()) {
+      this.router.navigate(['/debate-setup', this.quickTopic.trim()]);
     }
+  }
+
+  // Get active debates
+  get activeDebates() {
+    return this.debates().filter(d => d.status === 'active' || d.status === 'pending');
+  }
+
+  // Get completed debates
+  get completedDebates() {
+    return this.debates().filter(d => d.status === 'completed');
   }
 }

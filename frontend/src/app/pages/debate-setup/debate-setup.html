@@ -1,0 +1,233 @@
+<!-- Debate Setup Content -->
+<div class="debate-setup-content">
+  <div class="content-container">
+    <div class="setup-header">
+      <button (click)="goBack()" class="back-button">
+        <i class="icon-arrow-left"></i>
+        <span class="back-text">Home</span>
+      </button>
+      <h1>Setup Multi-Debate</h1>
+      <p class="topic-display">"{{ topic }}"</p>
+    </div>
+
+    <div class="setup-form">
+      <!-- Participants Section -->
+      <div class="setup-section">
+        <h3 class="section-title">
+          <i class="icon-debaters"></i>
+          Debate Participants
+        </h3>
+        
+        <div class="participants-controls">
+          <div class="debater-count-control">
+            <label for="numDebaters">Number of Debaters:</label>
+            <select 
+              id="numDebaters"
+              [value]="debateSettings().numDebaters"
+              (change)="onNumDebatersChange(+$any($event.target).value)"
+              class="count-select">
+              <option value="2">2 Debaters</option>
+              <option value="3">3 Debaters</option>
+              <option value="4">4 Debaters</option>
+              <option value="5">5 Debaters</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="participants-grid">
+          @for (participant of selectedParticipants(); track $index) {
+            <div class="participant-slot">
+              <label class="participant-label">Debater {{ $index + 1 }}:</label>
+              <select 
+                [value]="participant"
+                (change)="onParticipantChange($index, $any($event.target).value)"
+                class="participant-select">
+                <option value="">Select a debater...</option>
+                @for (debater of activeDebaters; track debater.id) {
+                  <option 
+                    [value]="debater.id"
+                    [disabled]="isDebaterDisabled(debater.id)">
+                    {{ debater.name }}
+                  </option>
+                }
+              </select>
+              @if (participant) {
+                <div class="selected-debater-info">
+                  @for (debater of activeDebaters; track debater.id) {
+                    @if (debater.id === participant) {
+                      <small class="debater-description">{{ debater.description }}</small>
+                    }
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Moderator Section -->
+      <div class="setup-section">
+        <h3 class="section-title">
+          <i class="icon-moderator"></i>
+          Debate Moderator
+        </h3>
+        
+        <div class="moderator-selection">
+          <select 
+            [value]="selectedModerator()"
+            (change)="onModeratorChange($any($event.target).value)"
+            class="moderator-select">
+            <option value="default">Default Assistant</option>
+            @for (debater of availableModerators; track debater.id) {
+              <option 
+                [value]="debater.id"
+                [disabled]="isDebaterDisabled(debater.id)">
+                {{ debater.name }}
+              </option>
+            }
+          </select>
+          
+          @if (selectedModerator() && selectedModerator() !== 'default') {
+            <div class="moderator-info">
+              @for (debater of availableModerators; track debater.id) {
+                @if (debater.id === selectedModerator()) {
+                  <div class="moderator-card">
+                    <h4 class="moderator-name">{{ debater.name }}</h4>
+                    <p class="moderator-description">{{ debater.description }}</p>
+                    <span class="moderator-model">Model: {{ debater.model }}</span>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div class="setup-section">
+        <h3 class="section-title">
+          <i class="icon-settings"></i>
+          Debate Settings
+        </h3>
+        
+        <div class="settings-grid">
+          <div class="setting-item">
+            <label for="numRounds">Number of Rounds:</label>
+            <select 
+              id="numRounds"
+              [value]="debateSettings().numRounds"
+              (change)="onNumRoundsChange(+$any($event.target).value)"
+              class="setting-select">
+              @for (round of [1,2,3,4,5,6,7,8,9,10]; track round) {
+                <option [value]="round">{{ round }} Round{{ round > 1 ? 's' : '' }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label for="turnOrder">Turn Order:</label>
+            <select 
+              id="turnOrder"
+              [value]="debateSettings().turnOrder"
+              (change)="onTurnOrderChange($any($event.target).value)"
+              class="setting-select">
+              <option value="fixed">Fixed Order</option>
+              <option value="random">Random Order</option>
+              <option value="moderator-selected">Moderator Selected</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label for="responseTimeout">Response Timeout (minutes):</label>
+            <input 
+              type="number"
+              id="responseTimeout"
+              [value]="debateSettings().responseTimeout || 5"
+              (input)="onTimeoutChange(+$any($event.target).value)"
+              min="1"
+              max="60"
+              class="setting-input">
+          </div>
+
+          <div class="setting-item">
+            <label for="maxResponseLength">Max Response Length (characters):</label>
+            <input 
+              type="number"
+              id="maxResponseLength"
+              [value]="debateSettings().maxResponseLength || 2000"
+              (input)="onMaxLengthChange(+$any($event.target).value)"
+              min="100"
+              max="5000"
+              step="100"
+              class="setting-input">
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Section -->
+      <div class="setup-section">
+        <h3 class="section-title">
+          <i class="icon-preview"></i>
+          Debate Preview
+        </h3>
+        
+        <div class="debate-preview">
+          <div class="preview-item">
+            <strong>Topic:</strong> {{ topic }}
+          </div>
+          <div class="preview-item">
+            <strong>Participants:</strong>
+            @if (validParticipants.length > 0) {
+              <span class="participants-list">
+                @for (participantId of validParticipants; track participantId; let i = $index) {
+                  <span>{{ getDebaterName(participantId) }}</span>@if (i < validParticipants.length - 1) {<span>, </span>}
+                }
+              </span>
+            } @else {
+              <span class="empty-selection">No participants selected</span>
+            }
+          </div>
+          <div class="preview-item">
+            <strong>Moderator:</strong> {{ getDebaterName(selectedModerator()) }}
+          </div>
+          <div class="preview-item">
+            <strong>Rounds:</strong> {{ debateSettings().numRounds }}
+          </div>
+          <div class="preview-item">
+            <strong>Turn Order:</strong> {{ debateSettings().turnOrder }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="setup-actions">
+        @if (!isParticipantValid()) {
+          <div class="validation-errors">
+            @if (!hasCorrectNumberOfParticipants) {
+              <p class="error-message">Please select {{ debateSettings().numDebaters }} debaters</p>
+            }
+            @if (hasDuplicateParticipants) {
+              <p class="error-message">Each debater can only participate once</p>
+            }
+            @if (moderatorIsParticipant) {
+              <p class="error-message">Moderator cannot also be a participant</p>
+            }
+          </div>
+        }
+        
+        <button 
+          (click)="createDebate()"
+          [disabled]="!canCreateDebate()"
+          class="btn-primary create-debate-btn">
+          @if (isCreating()) {
+            <i class="icon-loading"></i>
+            <span>Creating Debate...</span>
+          } @else {
+            <i class="icon-start"></i>
+            <span>Start Debate</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

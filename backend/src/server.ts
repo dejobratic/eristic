@@ -1,13 +1,18 @@
 import 'dotenv/config';
 
-import { SQLiteDebateRepository, SQLiteTopicRepository, SQLiteDebaterRepository } from '@eristic/infrastructure/database/repositories';
+import { SQLiteDebateRepository, SQLiteTopicRepository, SQLiteDebaterRepository, SQLiteSettingsRepository } from '@eristic/infrastructure/database/repositories';
 import { DatabaseConnectionManager } from '@eristic/infrastructure/database/connection/connection-manager';
 import { initializeDatabase } from '@eristic/infrastructure/database/scripts/init-database';
 import { createTopicRoutes } from '@eristic/api/routes/topic.routes';
 import { createLLMRoutes } from '@eristic/api/routes/llm.routes';
 import { createDebaterRoutes } from '@eristic/api/routes/debater.routes';
+import { createDebateRoutes } from '@eristic/api/routes/debate.routes';
+import { createSettingsRoutes } from '@eristic/api/routes/settings.routes';
 import { errorHandler } from '@eristic/api/middleware/error.middleware';
 import { LLMService } from '@eristic/app/services/llm.service';
+import { DebateService } from '@eristic/app/services/debate.service';
+import { ModeratorService } from '@eristic/app/services/moderator.service';
+import { SettingsService } from '@eristic/app/services/settings.service';
 import { LLMConfig } from '@eristic/app/types/llm.types';
 
 import cors from 'cors';
@@ -49,18 +54,40 @@ async function initializeServices() {
   const debateRepository = new SQLiteDebateRepository();
   const topicRepository = new SQLiteTopicRepository();
   const debaterRepository = new SQLiteDebaterRepository();
+  const settingsRepository = new SQLiteSettingsRepository();
   
-  // Initialize LLM Service
+  // Initialize services
   const llmService = new LLMService(llmConfig);
+  const debateService = new DebateService(debateRepository, debaterRepository, llmService);
+  const moderatorService = new ModeratorService(debateRepository, debaterRepository, llmService);
+  const settingsService = new SettingsService(settingsRepository);
   
-  return { debateRepository, topicRepository, debaterRepository, llmService, connectionManager };
+  return { 
+    debateRepository, 
+    topicRepository, 
+    debaterRepository, 
+    settingsRepository,
+    llmService,
+    debateService,
+    moderatorService,
+    settingsService,
+    connectionManager 
+  };
 }
 
 // Start server with proper initialization
 async function startServer() {
   try {
     // Initialize all services
-    const { topicRepository, debaterRepository, llmService, connectionManager } = await initializeServices();
+    const { 
+      topicRepository, 
+      debaterRepository, 
+      llmService, 
+      debateService, 
+      moderatorService, 
+      settingsService, 
+      connectionManager 
+    } = await initializeServices();
     
     // Health check endpoint
     app.get('/health', (req, res) => {
@@ -76,6 +103,12 @@ async function startServer() {
     
     // Debater routes
     app.use('/api/debaters', createDebaterRoutes(debaterRepository));
+    
+    // Debate routes (new multi-debate system)
+    app.use('/api/debates', createDebateRoutes(debateService, moderatorService));
+    
+    // Settings routes
+    app.use('/api/settings', createSettingsRoutes(settingsService));
     
     // LLM routes
     app.use('/api/llm', createLLMRoutes(llmService));

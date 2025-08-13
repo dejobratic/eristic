@@ -29,15 +29,10 @@
       }
     </div>
 
-    <!-- Theme Toggle -->
-    <button class="theme-toggle" (click)="toggleTheme()" title="Toggle theme">
-      @if (currentTheme() === 'dark') {
-        <i class="icon-sun"></i>
-        <span class="theme-text">Light</span>
-      } @else {
-        <i class="icon-moon"></i>
-        <span class="theme-text">Dark</span>
-      }
+    <!-- Settings Button -->
+    <button class="settings-button" (click)="openSettings()" title="Open settings">
+      <i class="icon-settings"></i>
+      <span class="settings-text">Settings</span>
     </button>
 
     <!-- Mobile Menu Toggle -->
@@ -64,8 +59,19 @@
       </div>
       
       <div class="mobile-menu-body">
-        <div class="mobile-menu-message">
-          <p>Use the sidebar menu for navigation</p>
+        <div class="mobile-menu-links">
+          <button class="mobile-menu-link" (click)="navigateToHome()">
+            <i class="icon-home"></i>
+            <span>Home</span>
+          </button>
+          <button class="mobile-menu-link" (click)="navigateToDebaters()">
+            <i class="icon-debaters"></i>
+            <span>AI Debaters</span>
+          </button>
+          <button class="mobile-menu-link" (click)="openSettings()">
+            <i class="icon-settings"></i>
+            <span>Settings</span>
+          </button>
         </div>
       </div>
       
@@ -83,17 +89,12 @@
             </div>
           }
         </div>
-        
-        <button class="mobile-theme-toggle" (click)="toggleTheme()">
-          @if (currentTheme() === 'dark') {
-            <i class="icon-sun"></i>
-            <span>Switch to Light</span>
-          } @else {
-            <i class="icon-moon"></i>
-            <span>Switch to Dark</span>
-          }
-        </button>
       </div>
     </nav>
   </div>
+}
+
+<!-- Settings Modal -->
+@if (isSettingsModalOpen()) {
+  <app-settings-modal (close)="closeSettings()"></app-settings-modal>
 }
