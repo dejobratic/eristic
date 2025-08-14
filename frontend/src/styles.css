@@ -62,6 +62,7 @@
   --sidebar-width: 20rem; /* 320px - 25% wider than original 256px */
   --sidebar-collapsed-width: 4rem; /* 64px */
   --footer-height: 3rem;  /* 48px */
+  --footer-height-mobile: 6rem; /* 96px - for two-line mobile layout with padding */
   --content-max-width: 75rem; /* 1200px */
   
   /* === Z-Index Scale === */

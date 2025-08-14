@@ -1,29 +1,24 @@
 <!-- Debaters Page Content -->
 <div class="debaters-content">
-  <div class="content-container">
-    <!-- Combined Stats and Manager Section -->
-    <div class="combined-section">
-      <!-- Debater Stats -->
-      <div class="stats-section">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-value">{{ activeDebaters() }}</div>
-            <div class="stat-label">Active Debaters</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">{{ totalDebaters() }}</div>
-            <div class="stat-label">Total Debaters</div>
-          </div>
-          <button class="create-debater-btn" (click)="createNewDebater()">
-            <span>Create New Debater</span>
-          </button>
-        </div>
+  <!-- Debater Stats -->
+  <div class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ activeDebaters() }}</div>
+        <div class="stat-label">Active Debaters</div>
       </div>
-      
-      <!-- Debater Manager Component -->
-      <div class="manager-section">
-        <app-debater-manager (debaterUpdated)="refreshStats()"></app-debater-manager>
+      <div class="stat-card">
+        <div class="stat-value">{{ totalDebaters() }}</div>
+        <div class="stat-label">Total Debaters</div>
       </div>
+      <button class="create-debater-btn" (click)="createNewDebater()">
+        <span>Create New Debater</span>
+      </button>
     </div>
+  </div>
+  
+  <!-- Debater Manager Component -->
+  <div class="manager-section">
+    <app-debater-manager (debaterUpdated)="refreshStats()"></app-debater-manager>
   </div>
 </div>
