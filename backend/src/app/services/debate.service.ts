@@ -127,6 +127,109 @@ export class DebateService {
     return savedResponse;
   }
 
+  async generateParticipantResponse(debateId: string, participantId: string): Promise<DebateResponse> {
+    const debate = await this.debateRepository.getDebateWithDetails(debateId);
+    if (!debate) {
+      throw new NotFoundException('Debate');
+    }
+
+    if (debate.status !== 'active') {
+      throw new ValidationException('Debate must be active to generate responses');
+    }
+
+    // Get current round
+    let currentRound = await this.debateRepository.getRoundByNumber(debateId, debate.currentRound);
+    if (!currentRound) {
+      currentRound = await this.debateRepository.createRound(debateId, debate.currentRound);
+    }
+
+    // Find the participant
+    const participant = debate.participants.find(p => p.debaterId === participantId && p.role === 'debater');
+    if (!participant) {
+      throw new NotFoundException(`Participant ${participantId}`);
+    }
+
+    // Get existing responses for this round to determine response order
+    const existingResponses = await this.debateRepository.getResponses(currentRound.id);
+    const nextResponseOrder = existingResponses.length + 1;
+
+    // Get debater details
+    const debaterDetails = await this.debaterRepository.getDebater(participantId);
+    if (!debaterDetails) {
+      throw new NotFoundException(`Debater ${participantId}`);
+    }
+
+    // Generate response
+    const response = await this.generateDebateResponse(debate, currentRound, debaterDetails, nextResponseOrder);
+    
+    // Save response
+    const savedResponse = await this.debateRepository.addResponse({
+      roundId: currentRound.id,
+      debaterId: participantId,
+      content: response.content,
+      responseOrder: nextResponseOrder,
+      model: response.model,
+      tokens: response.tokens
+    });
+
+    // Check if round is complete after this response
+    const updatedResponses = await this.debateRepository.getResponses(currentRound.id);
+    const debaters = debate.participants.filter(p => p.role === 'debater');
+    
+    if (updatedResponses.length >= debaters.length) {
+      // Round is complete
+      await this.completeRound(debateId, debate.currentRound);
+    }
+
+    return savedResponse;
+  }
+
+  async skipCurrentParticipant(debateId: string): Promise<void> {
+    const debate = await this.debateRepository.getDebateWithDetails(debateId);
+    if (!debate) {
+      throw new NotFoundException('Debate');
+    }
+
+    if (debate.status !== 'active') {
+      throw new ValidationException('Debate must be active to skip participants');
+    }
+
+    // Get current round
+    let currentRound = await this.debateRepository.getRoundByNumber(debateId, debate.currentRound);
+    if (!currentRound) {
+      currentRound = await this.debateRepository.createRound(debateId, debate.currentRound);
+    }
+
+    // Get existing responses for this round
+    const existingResponses = await this.debateRepository.getResponses(currentRound.id);
+    const nextResponseOrder = existingResponses.length + 1;
+    const debaters = debate.participants.filter(p => p.role === 'debater');
+
+    if (nextResponseOrder > debaters.length) {
+      // Round is already complete
+      return;
+    }
+
+    // Add a placeholder response for the skipped participant
+    const skippedParticipant = debaters.find(p => p.position === nextResponseOrder);
+    if (skippedParticipant) {
+      await this.debateRepository.addResponse({
+        roundId: currentRound.id,
+        debaterId: skippedParticipant.debaterId,
+        content: '[Participant skipped their turn]',
+        responseOrder: nextResponseOrder,
+        model: 'system',
+        tokens: { prompt: 0, completion: 0, total: 0 }
+      });
+
+      // Check if round is complete after this skip
+      const updatedResponses = await this.debateRepository.getResponses(currentRound.id);
+      if (updatedResponses.length >= debaters.length) {
+        await this.completeRound(debateId, debate.currentRound);
+      }
+    }
+  }
+
   async completeRound(debateId: string, roundNumber: number): Promise<void> {
     const debate = await this.debateRepository.getDebate(debateId);
     if (!debate) {

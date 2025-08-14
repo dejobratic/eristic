@@ -18,6 +18,8 @@ export function createDebateRoutes(debateService: DebateService, moderatorServic
   router.post('/:debateId/pause', debateController.pauseDebate);
   router.post('/:debateId/resume', debateController.resumeDebate);
   router.post('/:debateId/next', debateController.processNextResponse);
+  router.post('/:debateId/generate-response', debateController.generateParticipantResponse);
+  router.post('/:debateId/skip', debateController.skipCurrentParticipant);
   
   // Data retrieval
   router.get('/:debateId/participants', debateController.getDebateParticipants);

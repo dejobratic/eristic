@@ -145,4 +145,26 @@ export class DebateController {
       data: responses
     } as APIResponse);
   });
+
+  generateParticipantResponse = asyncHandler(async (req: Request, res: Response) => {
+    const { debateId } = req.params;
+    const { participantId } = req.body;
+
+    const response = await this.debateService.generateParticipantResponse(debateId, participantId);
+
+    res.json({
+      success: true,
+      data: response
+    } as APIResponse);
+  });
+
+  skipCurrentParticipant = asyncHandler(async (req: Request, res: Response) => {
+    const { debateId } = req.params;
+    await this.debateService.skipCurrentParticipant(debateId);
+
+    res.json({
+      success: true,
+      data: { message: 'Participant skipped successfully' }
+    } as APIResponse);
+  });
 }

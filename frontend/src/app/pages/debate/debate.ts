@@ -41,17 +41,37 @@ export class DebatePage implements OnInit, OnDestroy {
   currentParticipant = computed(() => {
     const round = this.currentRound();
     const participants = this.participants();
+    const responses = this.responses();
+    
     if (!round || !participants.length) return null;
     
-    return participants.find(p => p.id === round.currentParticipantId) || null;
+    // Get current round responses
+    const currentRoundResponses = responses.filter(r => r.roundId === round.id);
+    const nextResponseOrder = currentRoundResponses.length + 1;
+    
+    // Find debater participants only
+    const debaters = participants.filter(p => p.role === 'debater');
+    
+    // Find the participant whose turn it is based on response order
+    return debaters.find(p => p.position === nextResponseOrder) || null;
   });
 
   nextParticipant = computed(() => {
     const round = this.currentRound();
     const participants = this.participants();
+    const responses = this.responses();
+    
     if (!round || !participants.length) return null;
     
-    return participants.find(p => p.id === round.nextParticipantId) || null;
+    // Get current round responses
+    const currentRoundResponses = responses.filter(r => r.roundId === round.id);
+    const nextResponseOrder = currentRoundResponses.length + 2; // Next after current
+    
+    // Find debater participants only
+    const debaters = participants.filter(p => p.role === 'debater');
+    
+    // Find the next participant
+    return debaters.find(p => p.position === nextResponseOrder) || null;
   });
 
   canGenerateResponse = computed(() => {
