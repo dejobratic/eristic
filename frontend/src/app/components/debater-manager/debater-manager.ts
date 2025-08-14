@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -15,6 +15,8 @@ import { LLMService } from '@eristic/app/services/llm.service';
 export class DebaterManager {
   private debaterService = inject(DebaterService);
   private llmService = inject(LLMService);
+  
+  debaterUpdated = output<void>();
   
   debaters = signal<Debater[]>([]);
   availableModels = signal<string[]>([]);
@@ -78,7 +80,7 @@ export class DebaterManager {
       description: debater.description,
       model: debater.model,
       systemPrompt: debater.systemPrompt,
-      isActive: debater.isActive
+      isActive: true
     });
     this.editingDebater.set(debater);
     this.showCreateForm.set(true);
@@ -102,31 +104,22 @@ export class DebaterManager {
   }
 
   validateForm(): boolean {
-    const errors: string[] = [];
     const data = this.formData();
+    return !!(data.name?.trim() && 
+              data.description?.trim() && 
+              data.model?.trim() && 
+              data.systemPrompt?.trim());
+  }
 
-    if (!data.name || data.name.trim().length < 2) {
-      errors.push('Name must be at least 2 characters long');
-    }
-    if (!data.description || data.description.trim().length < 10) {
-      errors.push('Description must be at least 10 characters long');
-    }
-    if (!data.model || data.model.trim().length === 0) {
-      errors.push('Model is required');
-    }
-    if (!data.systemPrompt || data.systemPrompt.trim().length < 20) {
-      errors.push('System prompt must be at least 20 characters long');
-    }
-
-    this.formErrors.set(errors);
-    return errors.length === 0;
+  get isFormValid(): boolean {
+    return this.validateForm();
   }
 
   async saveDebater() {
     if (!this.validateForm()) return;
     
     this.loading.set(true);
-    const data = this.formData() as CreateDebaterRequest;
+    const data = { ...this.formData(), isActive: true } as CreateDebaterRequest;
     
     try {
       const editingDebater = this.editingDebater();
@@ -138,7 +131,7 @@ export class DebaterManager {
           description: data.description,
           model: data.model,
           systemPrompt: data.systemPrompt,
-          isActive: data.isActive
+          isActive: true
         };
         await this.debaterService.updateDebater(editingDebater.id, updates);
       } else {
@@ -147,11 +140,10 @@ export class DebaterManager {
       }
       
       await this.loadDebaters();
+      this.debaterUpdated.emit();
       this.closeForm();
     } catch (error) {
       console.error('Failed to save debater:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save debater';
-      this.formErrors.set([errorMessage]);
     } finally {
       this.loading.set(false);
     }
@@ -170,6 +162,7 @@ export class DebaterManager {
     try {
       await this.debaterService.deleteDebater(debater.id);
       await this.loadDebaters();
+      this.debaterUpdated.emit();
     } catch (error) {
       console.error('Failed to delete debater:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete debater';
@@ -189,6 +182,7 @@ export class DebaterManager {
       };
       await this.debaterService.updateDebater(debater.id, updates);
       await this.loadDebaters();
+      this.debaterUpdated.emit();
     } catch (error) {
       console.error('Failed to toggle debater status:', error);
     }

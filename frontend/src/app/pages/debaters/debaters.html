@@ -1,11 +1,8 @@
 <!-- Debaters Page Content -->
 <div class="debaters-content">
   <div class="content-container">
-    <!-- Page Header with Stats -->
-    <div class="debaters-header">
-      <h1 class="page-title">AI Debaters</h1>
-      <p class="page-description">Manage your AI debaters and create custom debate partners</p>
-      
+    <!-- Combined Stats and Manager Section -->
+    <div class="combined-section">
       <!-- Debater Stats -->
       <div class="stats-section">
         <div class="stats-grid">
@@ -17,23 +14,16 @@
             <div class="stat-value">{{ totalDebaters() }}</div>
             <div class="stat-label">Total Debaters</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-value">{{ recentlyUsed() }}</div>
-            <div class="stat-label">Recently Used</div>
-          </div>
+          <button class="create-debater-btn" (click)="createNewDebater()">
+            <span>Create New Debater</span>
+          </button>
         </div>
-        
-        <!-- Create New Debater Button -->
-        <button class="create-debater-btn" (click)="createNewDebater()">
-          <i class="icon-plus"></i>
-          <span>Create New Debater</span>
-        </button>
       </div>
-    </div>
-    
-    <!-- Debater Manager Component -->
-    <div class="manager-section">
-      <app-debater-manager></app-debater-manager>
+      
+      <!-- Debater Manager Component -->
+      <div class="manager-section">
+        <app-debater-manager (debaterUpdated)="refreshStats()"></app-debater-manager>
+      </div>
     </div>
   </div>
 </div>

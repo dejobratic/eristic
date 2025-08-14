@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
@@ -15,9 +15,10 @@ export class Debaters implements OnInit {
   private debaterService = inject(DebaterService);
   private route = inject(ActivatedRoute);
   
+  @ViewChild(DebaterManager) debaterManager!: DebaterManager;
+  
   activeDebaters = signal(0);
   totalDebaters = signal(0);
-  recentlyUsed = signal(0);
   
   ngOnInit() {
     this.loadStats();
@@ -30,6 +31,10 @@ export class Debaters implements OnInit {
       }
     });
   }
+
+  refreshStats() {
+    this.loadStats();
+  }
   
   private async loadStats() {
     try {
@@ -38,15 +43,14 @@ export class Debaters implements OnInit {
       
       this.totalDebaters.set(allDebaters.length);
       this.activeDebaters.set(activeCount);
-      this.recentlyUsed.set(Math.min(3, activeCount)); // Simple placeholder logic
     } catch (error) {
       console.error('Failed to load debater stats:', error);
     }
   }
   
   createNewDebater() {
-    // This will be handled by the debater-manager component
-    // We can emit an event or call a method on the child component
-    console.log('Create new debater triggered');
+    if (this.debaterManager) {
+      this.debaterManager.openCreateForm();
+    }
   }
 }

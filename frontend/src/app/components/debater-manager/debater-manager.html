@@ -1,32 +1,10 @@
 <div class="debater-manager">
-  <div class="manager-header">
-    <div class="header-title-section">
-      <button class="back-btn" routerLink="/" title="Back to Topics">
-        <i class="icon-back"></i>
-      </button>
-      <h2>Manage Debaters</h2>
-    </div>
-  </div>
 
   <!-- Create/Edit Form -->
   @if (showCreateForm()) {
     <div class="form-overlay">
       <form class="debater-form" (ngSubmit)="saveDebater()">
-        <div class="form-header">
-          <h3>{{ isEditing ? 'Edit Debater' : 'Create New Debater' }}</h3>
-          <button type="button" class="close-btn" (click)="closeForm()">
-            <i class="icon-close"></i>
-          </button>
-        </div>
 
-        <!-- Form Errors -->
-        @if (formErrors().length > 0) {
-          <div class="form-errors">
-            @for (error of formErrors(); track error) {
-              <div class="error-item">{{ error }}</div>
-            }
-          </div>
-        }
 
         <div class="form-body">
           <div class="form-group">
@@ -99,19 +77,10 @@
               [value]="formData().systemPrompt || ''"
               (input)="updateFormField('systemPrompt', $any($event.target).value)"
               placeholder="Enter the system prompt that defines this debater's personality and behavior"
-              rows="6"
+              rows="4"
               required></textarea>
           </div>
 
-          <div class="form-group checkbox-group">
-            <label class="checkbox-label">
-              <input
-                type="checkbox"
-                [checked]="formData().isActive || false"
-                (change)="updateFormField('isActive', $any($event.target).checked)">
-              <span class="checkbox-text">Active (available for topic generation)</span>
-            </label>
-          </div>
         </div>
 
         <div class="form-actions">
@@ -121,7 +90,7 @@
           <button 
             type="submit" 
             class="save-btn"
-            [disabled]="loading()">
+            [disabled]="loading() || !isFormValid">
             {{ loading() ? 'Saving...' : (isEditing ? 'Update' : 'Create') }}
           </button>
         </div>
