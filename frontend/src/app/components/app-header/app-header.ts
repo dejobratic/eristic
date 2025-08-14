@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { ThemeService } from '@eristic/app/services/theme';
-import { LLMService } from '@eristic/app/services/llm.service';
+import { SidebarService } from '@eristic/app/services/sidebar.service';
 import { SettingsModal } from '@eristic/app/components/settings-modal/settings-modal';
 
 @Component({
@@ -14,17 +14,14 @@ import { SettingsModal } from '@eristic/app/components/settings-modal/settings-m
 })
 export class AppHeader {
   private themeService = inject(ThemeService);
-  private llmService = inject(LLMService);
+  private sidebarService = inject(SidebarService);
   private router = inject(Router);
   
   currentTheme = this.themeService.getTheme();
-  llmStatus = this.llmService.getStatusState();
-  isMobileMenuOpen = signal(false);
   isSettingsModalOpen = signal(false);
 
-  openSettings() {
-    this.isSettingsModalOpen.set(true);
-    this.closeMobileMenu();
+  toggleSettings() {
+    this.isSettingsModalOpen.update(open => !open);
   }
 
   closeSettings() {
@@ -32,24 +29,15 @@ export class AppHeader {
   }
 
   toggleMobileMenu() {
-    this.isMobileMenuOpen.update(open => !open);
+    this.sidebarService.toggleSidebar();
   }
 
-  closeMobileMenu() {
-    this.isMobileMenuOpen.set(false);
-  }
 
   navigateToHome() {
     this.router.navigate(['/']);
-    this.closeMobileMenu();
   }
 
   navigateToDebaters() {
     this.router.navigate(['/debaters']);
-    this.closeMobileMenu();
-  }
-
-  get isLLMOnline() {
-    return this.llmStatus()?.available || false;
   }
 }

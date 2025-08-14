@@ -1,6 +1,13 @@
 <header class="modern-header">
   <!-- Logo and Brand -->
   <div class="header-brand">
+    <!-- Sidebar Toggle -->
+    <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" title="Toggle navigation">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+    
     <button class="logo-button" (click)="navigateToHome()">
       <div class="logo">
         <div class="logo-icon">
@@ -14,85 +21,13 @@
 
   <!-- Header Actions -->
   <div class="header-actions">
-    <!-- LLM Status Indicator -->
-    <div class="status-container">
-      @if (isLLMOnline) {
-        <div class="status-indicator status-online">
-          <div class="status-dot"></div>
-          <span class="status-text">Ollama Online</span>
-        </div>
-      } @else {
-        <div class="status-indicator status-offline">
-          <div class="status-dot"></div>
-          <span class="status-text">Ollama Offline</span>
-        </div>
-      }
-    </div>
-
     <!-- Settings Button -->
-    <button class="settings-button" (click)="openSettings()" title="Open settings">
+    <button class="settings-button" (click)="toggleSettings()" title="Toggle settings">
       <i class="icon-settings"></i>
       <span class="settings-text">Settings</span>
     </button>
-
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [attr.aria-expanded]="isMobileMenuOpen()">
-      <span class="hamburger-line"></span>
-      <span class="hamburger-line"></span>
-      <span class="hamburger-line"></span>
-    </button>
   </div>
 </header>
-
-<!-- Mobile Menu Overlay -->
-@if (isMobileMenuOpen()) {
-  <div class="mobile-menu-overlay" (click)="closeMobileMenu()">
-    <nav class="mobile-menu" role="navigation" (click)="$event.stopPropagation()">
-      <div class="mobile-menu-header">
-        <div class="mobile-logo">
-          <span class="logo-symbol">ε</span>
-          <span class="logo-text">Eristic</span>
-        </div>
-        <button class="mobile-menu-close" (click)="closeMobileMenu()">
-          <i class="icon-close"></i>
-        </button>
-      </div>
-      
-      <div class="mobile-menu-body">
-        <div class="mobile-menu-links">
-          <button class="mobile-menu-link" (click)="navigateToHome()">
-            <i class="icon-home"></i>
-            <span>Home</span>
-          </button>
-          <button class="mobile-menu-link" (click)="navigateToDebaters()">
-            <i class="icon-debaters"></i>
-            <span>AI Debaters</span>
-          </button>
-          <button class="mobile-menu-link" (click)="openSettings()">
-            <i class="icon-settings"></i>
-            <span>Settings</span>
-          </button>
-        </div>
-      </div>
-      
-      <div class="mobile-menu-footer">
-        <div class="mobile-status">
-          @if (isLLMOnline) {
-            <div class="status-indicator status-online">
-              <div class="status-dot"></div>
-              <span class="status-text">Ollama Online</span>
-            </div>
-          } @else {
-            <div class="status-indicator status-offline">
-              <div class="status-dot"></div>
-              <span class="status-text">Ollama Offline</span>
-            </div>
-          }
-        </div>
-      </div>
-    </nav>
-  </div>
-}
 
 <!-- Settings Modal -->
 @if (isSettingsModalOpen()) {

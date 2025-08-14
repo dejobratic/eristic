@@ -5,6 +5,8 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { DebateService } from '@eristic/app/services/debate.service';
 import { DebaterService } from '@eristic/app/services/debater.service';
+import { SidebarService } from '@eristic/app/services/sidebar.service';
+import { LLMService } from '@eristic/app/services/llm.service';
 
 interface RecentDebate {
   id: string;
@@ -23,13 +25,16 @@ interface RecentDebate {
 export class Sidebar implements OnInit {
   private debateService = inject(DebateService);
   private debaterService = inject(DebaterService);
+  private sidebarService = inject(SidebarService);
+  private llmService = inject(LLMService);
   private router = inject(Router);
 
-  isCollapsed = signal(false);
+  isCollapsed = this.sidebarService.getIsCollapsed();
   recentDebates = signal<RecentDebate[]>([]);
   filteredDebates = signal<RecentDebate[]>([]);
   searchTerm = '';
   isRefreshing = signal(false);
+  llmStatus = this.llmService.getStatusState();
 
   constructor() {
     // Automatically update when debates change in the service
@@ -73,10 +78,10 @@ export class Sidebar implements OnInit {
     const isMobile = window.innerWidth < 768;
     if (!isMobile) {
       // Always expanded on desktop
-      this.isCollapsed.set(false);
+      this.sidebarService.setSidebarCollapsed(false);
     } else {
       // Start collapsed on mobile
-      this.isCollapsed.set(true);
+      this.sidebarService.setSidebarCollapsed(true);
     }
   }
 
@@ -118,11 +123,17 @@ export class Sidebar implements OnInit {
     // Only allow toggle on mobile
     const isMobile = window.innerWidth < 768;
     if (isMobile) {
-      this.isCollapsed.update(collapsed => !collapsed);
+      this.sidebarService.toggleSidebar();
     }
   }
 
   navigateToDebate(debateId: string) {
+    // Close sidebar on mobile when navigating to a debate
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      this.sidebarService.setSidebarCollapsed(true);
+    }
+    
     this.router.navigate(['/debate', debateId]);
   }
 
@@ -171,5 +182,17 @@ export class Sidebar implements OnInit {
   clearSearch() {
     this.searchTerm = '';
     this.filteredDebates.set(this.recentDebates());
+  }
+
+  isLLMOnline() {
+    return this.llmStatus()?.available || false;
+  }
+
+  closeOnMobile() {
+    // Close sidebar on mobile when navigating
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      this.sidebarService.setSidebarCollapsed(true);
+    }
   }
 }

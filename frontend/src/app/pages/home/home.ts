@@ -56,8 +56,8 @@ export class Home implements OnInit {
     }
   }
 
-  // Get active debates
-  get activeDebates() {
+  // Get pending debates (includes active and paused)
+  get pendingDebates() {
     return this.debates().filter(d => d.status === 'active' || d.status === 'pending');
   }
 

@@ -1,22 +1,17 @@
 <aside class="sidebar" [class.sidebar-collapsed]="isCollapsed()" role="navigation" aria-label="Main navigation sidebar">
-  <!-- Collapse Toggle (Mobile Only) -->
-  <button class="collapse-toggle mobile-only" (click)="toggleCollapse()" title="Toggle sidebar">
-    <i class="icon-collapse" [class.rotated]="isCollapsed()"></i>
-  </button>
-
   <!-- Sidebar Content -->
   <div class="sidebar-content">
     <!-- Navigation Section -->
     <nav class="sidebar-nav" aria-label="Primary navigation">
       <div class="nav-section">
         <h3 class="nav-section-title" id="nav-heading">Navigate</h3>
-        <a routerLink="/" class="nav-item" routerLinkActive="nav-item-active" [routerLinkActiveOptions]="{exact: true}" aria-describedby="nav-heading">
+        <a routerLink="/" class="nav-item" routerLinkActive="nav-item-active" [routerLinkActiveOptions]="{exact: true}" aria-describedby="nav-heading" (click)="closeOnMobile()">
           <div class="nav-item-icon" aria-hidden="true">
             <i class="icon-home"></i>
           </div>
           <span class="nav-item-text">Home</span>
         </a>
-        <a routerLink="/debaters" class="nav-item" routerLinkActive="nav-item-active" aria-describedby="nav-heading">
+        <a routerLink="/debaters" class="nav-item" routerLinkActive="nav-item-active" aria-describedby="nav-heading" (click)="closeOnMobile()">
           <div class="nav-item-icon" aria-hidden="true">
             <i class="icon-debaters"></i>
           </div>
@@ -96,6 +91,35 @@
         </div>
       }
     </section>
+
+    <!-- LLM Status Section -->
+    <section class="ollama-status-section" aria-label="LLM service status">
+      <div class="section-header">
+        <h3 class="section-title">LLM Status</h3>
+      </div>
+      
+      @if (isLLMOnline()) {
+        <div class="ollama-status ollama-online">
+          <div class="status-icon">
+            <div class="status-dot"></div>
+          </div>
+          <div class="status-content">
+            <div class="status-title">Ollama Online</div>
+            <div class="status-subtitle">Ready for debates</div>
+          </div>
+        </div>
+      } @else {
+        <div class="ollama-status ollama-offline">
+          <div class="status-icon">
+            <div class="status-dot"></div>
+          </div>
+          <div class="status-content">
+            <div class="status-title">Ollama Offline</div>
+            <div class="status-subtitle">Check connection</div>
+          </div>
+        </div>
+      }
+    </section>
   </div>
 
 </aside>
@@ -104,3 +128,4 @@
 @if (!isCollapsed()) {
   <div class="sidebar-backdrop mobile-only" (click)="toggleCollapse()"></div>
 }
+
