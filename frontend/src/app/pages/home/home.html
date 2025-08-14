@@ -1,53 +1,47 @@
 <!-- Clean Home Page -->
 <div class="home-page">
-  
-  <!-- Main Content -->
-  <div class="main-content">
-    <!-- Centered Container with Stats and Form -->
-    <div class="debate-container">
-      <!-- Stats Grid -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value">{{ debates().length }}</div>
-          <div class="stat-label">Total Debates</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ pendingDebates.length }}</div>
-          <div class="stat-label">Pending Debates</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ completedDebates.length }}</div>
-          <div class="stat-label">Completed</div>
-        </div>
+  <!-- Stats Grid -->
+  <div class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ debates().length }}</div>
+        <div class="stat-label">Total Debates</div>
       </div>
-
-      <!-- Create Form -->
-      <form (ngSubmit)="createDebateWithTopic()" class="create-form">
-        <input 
-          type="text" 
-          [(ngModel)]="quickTopic" 
-          name="quickTopic"
-          placeholder="Enter debate topic..." 
-          class="topic-input">
-        <button 
-          type="submit" 
-          [disabled]="!quickTopic?.trim()"
-          class="create-btn">
-          Start Debate
-        </button>
-      </form>
-
-      <!-- Quick Topics -->
-      <div class="quick-topics">
-        <span class="quick-label">Try:</span>
-        <button 
-          *ngFor="let topic of quickTopics" 
-          (click)="setTopic(topic)"
-          class="topic-pill">
-          {{ topic }}
-        </button>
+      <div class="stat-card">
+        <div class="stat-value">{{ pendingDebates.length }}</div>
+        <div class="stat-label">Pending Debates</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ completedDebates.length }}</div>
+        <div class="stat-label">Completed</div>
       </div>
     </div>
   </div>
-  
+
+  <!-- Create Form -->
+  <form (ngSubmit)="createDebateWithTopic()" class="create-form">
+    <input 
+      type="text" 
+      [(ngModel)]="quickTopic" 
+      name="quickTopic"
+      placeholder="Enter debate topic..." 
+      class="topic-input">
+    <button 
+      type="submit" 
+      [disabled]="!quickTopic?.trim()"
+      class="create-btn">
+      Start Debate
+    </button>
+  </form>
+
+  <!-- Quick Topics -->
+  <div class="quick-topics">
+    <span class="quick-label">Try:</span>
+    <button 
+      *ngFor="let topic of quickTopics" 
+      (click)="setTopic(topic)"
+      class="topic-pill">
+      {{ topic }}
+    </button>
+  </div>
 </div>

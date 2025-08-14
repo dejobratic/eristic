@@ -4,28 +4,22 @@
   background-color: var(--bg-secondary);
   display: flex;
   flex-direction: column;
-  padding-top: 0;
-}
-
-/* Main Content */
-.main-content {
-  flex: 1;
-  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: var(--space-4) var(--space-6);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-/* Centered Container */
-.debate-container {
+/* Stats Section */
+.stats-section {
   background: var(--bg-primary);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
-  padding: var(--space-6);
   box-shadow: var(--shadow-sm);
-  width: 100%;
-  max-width: 700px;
-  text-align: center;
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
 }
 
 /* Stats Grid */
@@ -33,7 +27,6 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-4);
-  margin-bottom: var(--space-6);
 }
 
 .stat-card {
@@ -71,6 +64,8 @@
   display: flex;
   gap: 12px;
   margin-bottom: 20px;
+  width: 100%;
+  max-width: 600px;
 }
 
 .topic-input {
@@ -181,21 +176,18 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .home-page {
-    height: calc(100vh - var(--header-height) - 90px);
+    height: calc(100vh - var(--header-height) - var(--footer-height-mobile));
+    padding: var(--space-3) var(--space-3);
   }
   
-  .main-content {
-    padding: 16px 16px;
-  }
-  
-  .debate-container {
+  .stats-section {
     padding: var(--space-4);
+    margin-bottom: var(--space-6);
   }
   
   .stats-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: var(--space-3);
-    margin-bottom: var(--space-4);
   }
   
   .stat-card {
@@ -230,6 +222,8 @@
     grid-row: auto;
     grid-column: 1;
     margin-bottom: 8px;
+    text-align: center;
+    justify-self: center;
   }
   
   .topic-pill:nth-child(n) {
@@ -240,6 +234,15 @@
 }
 
 @media (max-width: 480px) {
+  .home-page {
+    padding: var(--space-2) var(--space-2);
+  }
+  
+  .stats-section {
+    padding: var(--space-3);
+    margin-bottom: var(--space-5);
+  }
+  
   .stats-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: var(--space-2);
