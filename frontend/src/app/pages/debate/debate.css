@@ -1,8 +1,10 @@
 /* Debate Execution Page Styles */
 .debate-content {
-  min-height: 100vh;
+  height: 100%;
   background-color: var(--bg-secondary);
   padding: 24px;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .content-container {
@@ -11,6 +13,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  min-height: 100%;
 }
 
 /* Loading and Error States */
@@ -608,6 +611,175 @@
   border-color: var(--border-focus);
 }
 
+
+/* Enhanced Loading States */
+.participant-name-with-loader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.inline-loader {
+  display: flex;
+  align-items: center;
+}
+
+.inline-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-primary);
+  border-top: 2px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.avatar-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.participant-avatar.loading {
+  background-color: var(--color-primary);
+  opacity: 0.8;
+}
+
+.turn-indicator.pulsing {
+  animation: pulse 2s infinite;
+}
+
+.next-loader {
+  margin-left: 8px;
+}
+
+.next-spinner {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--border-primary);
+  border-top: 1px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+
+/* Participants Overview */
+.participants-overview {
+  margin-top: 20px;
+  background-color: var(--bg-tertiary);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-primary);
+}
+
+.overview-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+
+.participants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.participant-overview-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--bg-primary);
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.participant-overview-card.current {
+  border-color: var(--color-primary);
+  background-color: rgba(33, 150, 243, 0.05);
+}
+
+.participant-overview-card.loading {
+  border-color: #ff9800;
+  background-color: rgba(255, 152, 0, 0.05);
+}
+
+.participant-mini-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mini-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-primary);
+  border-top: 2px solid #ff9800;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.participant-mini-info {
+  flex: 1;
+}
+
+.participant-mini-name {
+  display: block;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.participant-position {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.current-badge,
+.thinking-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.current-badge {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.thinking-badge {
+  background-color: #ff9800;
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
 /* Icons */
 .icon-arrow-left,
 .icon-play,
@@ -674,6 +846,7 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z'/%3E%3C/svg%3E");
 }
 
+
 .icon-ready,
 .icon-completed-large,
 .icon-paused-large {
@@ -698,6 +871,8 @@
 @media (max-width: 768px) {
   .debate-content {
     padding: 16px;
+    height: 100%;
+    overflow-y: auto;
   }
   
   .debate-header {
@@ -827,5 +1002,43 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
+  }
+
+  
+  .participants-overview {
+    padding: 12px;
+  }
+  
+  .participants-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .participant-overview-card {
+    padding: 10px;
+  }
+  
+  .participant-mini-avatar {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .mini-spinner {
+    width: 14px;
+    height: 14px;
+    border-width: 1px;
+  }
+  
+  .participant-name-with-loader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  
+  .current-badge,
+  .thinking-badge {
+    font-size: 0.6rem;
+    padding: 2px 6px;
   }
 }

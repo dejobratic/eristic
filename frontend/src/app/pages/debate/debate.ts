@@ -26,6 +26,9 @@ export class DebatePage implements OnInit, OnDestroy {
   isLoadingDebate = signal<boolean>(true);
   error = signal<string | null>(null);
   
+  // Enhanced loading states
+  participantLoadingStates = signal<Map<string, boolean>>(new Map());
+  
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private debateService = inject(DebateService);
@@ -211,6 +214,7 @@ export class DebatePage implements OnInit, OnDestroy {
 
     try {
       this.isGeneratingResponse.set(true);
+      this.setParticipantLoading(participant.debaterId, true);
       this.error.set(null);
 
       await this.debateService.generateParticipantResponse(debateId, participant.debaterId);
@@ -220,9 +224,10 @@ export class DebatePage implements OnInit, OnDestroy {
 
     } catch (error) {
       console.error('Failed to generate response:', error);
-      this.error.set('Failed to generate response. Please try again.');
+      this.error.set(`Failed to generate response for ${this.getDebaterName(participant.debaterId)}. Please try again.`);
     } finally {
       this.isGeneratingResponse.set(false);
+      this.setParticipantLoading(participant.debaterId, false);
     }
   }
 
@@ -308,4 +313,26 @@ export class DebatePage implements OnInit, OnDestroy {
   getCompletedRounds(): DebateRound[] {
     return this.rounds().filter(r => r.status === 'completed');
   }
+
+  // Participant loading state management
+  setParticipantLoading(debaterId: string, loading: boolean) {
+    const currentStates = new Map(this.participantLoadingStates());
+    if (loading) {
+      currentStates.set(debaterId, true);
+    } else {
+      currentStates.delete(debaterId);
+    }
+    this.participantLoadingStates.set(currentStates);
+  }
+
+  isParticipantLoading(debaterId: string): boolean {
+    return this.participantLoadingStates().get(debaterId) || false;
+  }
+
+  // Enhanced computed properties
+  isCurrentParticipantLoading = computed(() => {
+    const current = this.currentParticipant();
+    return current ? this.isParticipantLoading(current.debaterId) : false;
+  });
+
 }

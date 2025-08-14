@@ -70,6 +70,7 @@
                 <span>Resume</span>
               </button>
             }
+
           </div>
         </div>
         
@@ -120,6 +121,7 @@
               <span>Resume</span>
             </button>
           }
+
         </div>
       </div>
 
@@ -203,21 +205,36 @@
             @if (currentParticipant()) {
               <div class="current-participant-card">
                 <div class="participant-header">
-                  <div class="participant-avatar">
-                    <i class="icon-debater"></i>
+                  <div class="participant-avatar" [class.loading]="isCurrentParticipantLoading()">
+                    @if (isCurrentParticipantLoading()) {
+                      <div class="avatar-spinner"></div>
+                    } @else {
+                      <i class="icon-debater"></i>
+                    }
                   </div>
                   <div class="participant-info">
-                    <h3>{{ getDebaterName(currentParticipant()!.debaterId) }}'s Turn</h3>
+                    <h3 class="participant-name-with-loader">
+                      {{ getDebaterName(currentParticipant()!.debaterId) }}'s Turn
+                      @if (isCurrentParticipantLoading()) {
+                        <div class="inline-loader">
+                          <div class="inline-spinner"></div>
+                        </div>
+                      }
+                    </h3>
                     <p class="participant-description">
                       {{ getDebaterInfo(currentParticipant()!.debaterId)?.description || 'AI Debater' }}
                     </p>
                   </div>
-                  <div class="turn-indicator">
-                    <span class="turn-label">Current Turn</span>
+                  <div class="turn-indicator" [class.pulsing]="isCurrentParticipantLoading()">
+                    @if (isCurrentParticipantLoading()) {
+                      <span class="turn-label">Thinking...</span>
+                    } @else {
+                      <span class="turn-label">Current Turn</span>
+                    }
                   </div>
                 </div>
                 
-                @if (canGenerateResponse()) {
+                @if (canGenerateResponse() && !isCurrentParticipantLoading()) {
                   <div class="generate-section">
                     <button (click)="generateResponse()" class="btn-primary generate-btn">
                       <i class="icon-generate"></i>
@@ -228,12 +245,13 @@
                       <span>Skip Turn</span>
                     </button>
                   </div>
-                } @else if (isGeneratingResponse()) {
+                } @else if (isCurrentParticipantLoading()) {
                   <div class="generating-state">
                     <div class="generating-spinner"></div>
-                    <span>Generating response...</span>
+                    <span>Generating response for {{ getDebaterName(currentParticipant()!.debaterId) }}...</span>
                   </div>
                 }
+
               </div>
             }
 
@@ -241,6 +259,47 @@
               <div class="next-participant-info">
                 <span class="next-label">Next:</span>
                 <span class="next-name">{{ getDebaterName(nextParticipant()!.debaterId) }}</span>
+                @if (isParticipantLoading(nextParticipant()!.debaterId)) {
+                  <div class="next-loader">
+                    <div class="next-spinner"></div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Enhanced Participants Overview -->
+            @if (participants().length > 0) {
+              <div class="participants-overview">
+                <h4 class="overview-title">
+                  <i class="icon-participants"></i>
+                  All Participants
+                </h4>
+                <div class="participants-grid">
+                  @for (participant of participants(); track participant.id) {
+                    <div 
+                      class="participant-overview-card"
+                      [class.current]="currentParticipant()?.id === participant.id"
+                      [class.loading]="isParticipantLoading(participant.debaterId)">
+                      <div class="participant-mini-avatar">
+                        @if (isParticipantLoading(participant.debaterId)) {
+                          <div class="mini-spinner"></div>
+                        } @else {
+                          <i class="icon-debater"></i>
+                        }
+                      </div>
+                      <div class="participant-mini-info">
+                        <span class="participant-mini-name">{{ getDebaterName(participant.debaterId) }}</span>
+                        <span class="participant-position">Position {{ participant.position }}</span>
+                      </div>
+                      @if (currentParticipant()?.id === participant.id) {
+                        <div class="current-badge">Current</div>
+                      }
+                      @if (isParticipantLoading(participant.debaterId)) {
+                        <div class="thinking-badge">Thinking</div>
+                      }
+                    </div>
+                  }
+                </div>
               </div>
             }
           </div>
