@@ -4,7 +4,7 @@ import { LLMResponse } from '@eristic/app/types/llm.types';
 export interface Debate {
   id: string;
   topic: string;
-  status: 'pending' | 'active' | 'completed' | 'paused';
+  status: 'active' | 'completed' | 'paused';
   moderatorId: string;
   currentRound: number;
   totalRounds: number;

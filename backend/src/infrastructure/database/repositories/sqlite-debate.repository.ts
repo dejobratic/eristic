@@ -29,7 +29,7 @@ export class SQLiteDebateRepository extends DebateRepository {
       stmt.run(
         debateId,
         request.topic,
-        'pending',
+        'active',
         request.moderatorId,
         request.settings.numRounds,
         JSON.stringify(request.settings),

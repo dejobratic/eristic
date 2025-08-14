@@ -18,10 +18,12 @@ export class DebateService {
       throw new ValidationException('Debate must have between 2 and 5 participants');
     }
 
-    // Validate moderator exists
-    const moderator = await this.debaterRepository.getDebater(request.moderatorId);
-    if (!moderator) {
-      throw new NotFoundException('Moderator');
+    // Validate moderator exists (skip validation for 'default' moderator)
+    if (request.moderatorId !== 'default') {
+      const moderator = await this.debaterRepository.getDebater(request.moderatorId);
+      if (!moderator) {
+        throw new NotFoundException('Moderator');
+      }
     }
 
     // Validate all participants exist
@@ -56,8 +58,8 @@ export class DebateService {
       throw new NotFoundException('Debate');
     }
 
-    if (debate.status !== 'pending') {
-      throw new ValidationException('Debate must be in pending status to start');
+    if (debate.status === 'completed') {
+      throw new ValidationException('Cannot start a completed debate');
     }
 
     // Create first round
@@ -163,6 +165,18 @@ export class DebateService {
 
   async deleteDebate(debateId: string): Promise<void> {
     await this.debateRepository.deleteDebate(debateId);
+  }
+
+  async getDebateParticipants(debateId: string): Promise<DebateParticipant[]> {
+    return await this.debateRepository.getParticipants(debateId);
+  }
+
+  async getDebateRounds(debateId: string): Promise<DebateRound[]> {
+    return await this.debateRepository.getRounds(debateId);
+  }
+
+  async getAllDebateResponses(debateId: string): Promise<DebateResponse[]> {
+    return await this.debateRepository.getAllDebateResponses(debateId);
   }
 
   private async generateDebateResponse(

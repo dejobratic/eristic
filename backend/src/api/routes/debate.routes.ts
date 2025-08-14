@@ -19,6 +19,11 @@ export function createDebateRoutes(debateService: DebateService, moderatorServic
   router.post('/:debateId/resume', debateController.resumeDebate);
   router.post('/:debateId/next', debateController.processNextResponse);
   
+  // Data retrieval
+  router.get('/:debateId/participants', debateController.getDebateParticipants);
+  router.get('/:debateId/rounds', debateController.getDebateRounds);
+  router.get('/:debateId/responses', debateController.getDebateResponses);
+  
   // Moderation
   router.get('/:debateId/summary/round/:roundNumber', debateController.generateRoundSummary);
   router.get('/:debateId/summary/final', debateController.generateFinalSummary);

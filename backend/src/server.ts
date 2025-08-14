@@ -1,9 +1,8 @@
 import 'dotenv/config';
 
-import { SQLiteDebateRepository, SQLiteTopicRepository, SQLiteDebaterRepository, SQLiteSettingsRepository } from '@eristic/infrastructure/database/repositories';
+import { SQLiteDebateRepository, SQLiteDebaterRepository, SQLiteSettingsRepository } from '@eristic/infrastructure/database/repositories';
 import { DatabaseConnectionManager } from '@eristic/infrastructure/database/connection/connection-manager';
 import { initializeDatabase } from '@eristic/infrastructure/database/scripts/init-database';
-import { createTopicRoutes } from '@eristic/api/routes/topic.routes';
 import { createLLMRoutes } from '@eristic/api/routes/llm.routes';
 import { createDebaterRoutes } from '@eristic/api/routes/debater.routes';
 import { createDebateRoutes } from '@eristic/api/routes/debate.routes';
@@ -30,6 +29,12 @@ app.use(cors({
 
 app.use(express.json());
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // LLM Configuration
 const llmConfig: LLMConfig = {
   provider: process.env.LLM_PROVIDER || 'ollama',
@@ -52,7 +57,6 @@ async function initializeServices() {
   
   // Initialize repositories
   const debateRepository = new SQLiteDebateRepository();
-  const topicRepository = new SQLiteTopicRepository();
   const debaterRepository = new SQLiteDebaterRepository();
   const settingsRepository = new SQLiteSettingsRepository();
   
@@ -64,7 +68,6 @@ async function initializeServices() {
   
   return { 
     debateRepository, 
-    topicRepository, 
     debaterRepository, 
     settingsRepository,
     llmService,
@@ -80,7 +83,6 @@ async function startServer() {
   try {
     // Initialize all services
     const { 
-      topicRepository, 
       debaterRepository, 
       llmService, 
       debateService, 
@@ -98,8 +100,6 @@ async function startServer() {
       });
     });
 
-    // Topic routes
-    app.use('/api/topics', createTopicRoutes(llmService, topicRepository, debaterRepository));
     
     // Debater routes
     app.use('/api/debaters', createDebaterRoutes(debaterRepository));

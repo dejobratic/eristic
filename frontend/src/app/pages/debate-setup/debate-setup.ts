@@ -196,6 +196,8 @@ export class DebateSetup implements OnInit {
         settings: this.debateSettings()
       };
       
+      console.log('Creating debate with request:', request);
+      
       const debate = await this.debateService.createDebate(request);
       
       // Navigate to the debate page

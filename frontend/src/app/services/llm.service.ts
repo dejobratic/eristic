@@ -23,10 +23,6 @@ export interface LLMStatus {
   };
 }
 
-interface TopicRequest {
-  topic: string;
-}
-
 interface ModelsResponse {
   models: string[];
 }
@@ -46,9 +42,6 @@ export class LLMService {
   }
 
   async generateTopicResponse(topic: string): Promise<LLMResponse> {
-    // This method is deprecated - use TopicService.generateTopicContent instead
-    // Kept for backward compatibility
-    console.warn('LLMService.generateTopicResponse is deprecated. Use TopicService.generateTopicContent instead.');
     
     this.loadingState.set(true);
     

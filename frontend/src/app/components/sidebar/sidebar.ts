@@ -1,17 +1,17 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
-import { TopicService } from '@eristic/app/services/topic';
+import { DebateService } from '@eristic/app/services/debate.service';
 import { DebaterService } from '@eristic/app/services/debater.service';
 
-interface RecentTopic {
-  name: string;
+interface RecentDebate {
+  id: string;
+  topic: string;
   timestamp: Date;
-  debaterName?: string;
-  isEditing?: boolean;
-  originalName?: string;
+  status: string;
+  participantCount: number;
 }
 
 @Component({
@@ -21,18 +21,26 @@ interface RecentTopic {
   styleUrl: './sidebar.css'
 })
 export class Sidebar implements OnInit {
-  private topicService = inject(TopicService);
+  private debateService = inject(DebateService);
   private debaterService = inject(DebaterService);
   private router = inject(Router);
 
   isCollapsed = signal(false);
-  recentTopics = signal<RecentTopic[]>([]);
-  filteredTopics = signal<RecentTopic[]>([]);
+  recentDebates = signal<RecentDebate[]>([]);
+  filteredDebates = signal<RecentDebate[]>([]);
   searchTerm = '';
   isRefreshing = signal(false);
 
+  constructor() {
+    // Automatically update when debates change in the service
+    effect(() => {
+      const debates = this.debateService.getDebates()();
+      this.updateRecentDebates(debates);
+    });
+  }
+
   async ngOnInit() {
-    await this.loadRecentTopics();
+    await this.loadRecentDebates();
     this.handleResponsiveBehavior();
     window.addEventListener('resize', () => this.handleResponsiveBehavior());
     this.setupKeyboardShortcuts();
@@ -72,30 +80,36 @@ export class Sidebar implements OnInit {
     }
   }
 
-  private async loadRecentTopics() {
+  private async loadRecentDebates() {
     try {
       // Always refresh from database on load
-      await this.topicService.refreshTopics();
-      
-      const topics = this.topicService.getTopicsSync();
-      const debaters = this.debaterService.getDebatersSync();
-      
-      const recent = topics
-        .slice(0, 5) // Get 5 most recent
-        .map(topic => ({
-          name: topic.name,
-          timestamp: new Date(topic.timestamp),
-          debaterName: topic.debaterId ? 
-            debaters.find(d => d.id === topic.debaterId)?.name : 
-            'Default Assistant',
-          isEditing: false,
-          originalName: topic.name
-        }));
-      
-      this.recentTopics.set(recent);
-      this.filteredTopics.set(recent);
+      await this.debateService.refreshDebates();
+      // The effect will automatically update when the service signal changes
     } catch (error) {
-      console.error('Failed to load recent topics:', error);
+      console.error('Failed to load recent debates:', error);
+    }
+  }
+
+  private updateRecentDebates(debates: any[]) {
+    const recent = debates
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) // Sort by most recently updated
+      .slice(0, 5) // Get 5 most recent
+      .map(debate => ({
+        id: debate.id,
+        topic: debate.topic,
+        timestamp: new Date(debate.updatedAt), // Use updatedAt instead of createdAt
+        status: debate.status,
+        participantCount: debate.settings.numDebaters
+      }));
+    
+    this.recentDebates.set(recent);
+    
+    // Update filtered list if no search term
+    if (!this.searchTerm) {
+      this.filteredDebates.set(recent);
+    } else {
+      // Re-apply current filter
+      this.filterDebates();
     }
   }
 
@@ -108,88 +122,54 @@ export class Sidebar implements OnInit {
     }
   }
 
-  navigateToTopic(topicName: string) {
-    this.router.navigate(['/topic', topicName]);
+  navigateToDebate(debateId: string) {
+    this.router.navigate(['/debate', debateId]);
   }
 
-  async deleteTopic(topicName: string) {
-    if (confirm(`Are you sure you want to delete the topic "${topicName}"?`)) {
+  async deleteDebate(debateId: string, topic: string) {
+    if (confirm(`Are you sure you want to delete the debate "${topic}"?`)) {
       try {
-        await this.topicService.deleteTopic(topicName);
-        await this.loadRecentTopics(); // Refresh the list
+        await this.debateService.deleteDebate(debateId);
+        await this.loadRecentDebates(); // Refresh the list
       } catch (error) {
-        console.error('Failed to delete topic:', error);
-        alert('Failed to delete topic. Please try again.');
+        console.error('Failed to delete debate:', error);
+        alert('Failed to delete debate. Please try again.');
       }
     }
   }
 
-  async refreshRecentTopics() {
+  async refreshRecentDebates() {
     this.isRefreshing.set(true);
     try {
-      await this.loadRecentTopics();
+      await this.debateService.refreshDebates();
     } finally {
       // Small delay for visual feedback
       setTimeout(() => this.isRefreshing.set(false), 300);
     }
   }
 
-  startRename(topicName: string) {
-    const topics = this.recentTopics();
-    const updatedTopics = topics.map(topic => 
-      topic.name === topicName 
-        ? { ...topic, isEditing: true }
-        : { ...topic, isEditing: false }
-    );
-    this.recentTopics.set(updatedTopics);
-  }
 
-  async saveRename(oldName: string, newName: string) {
-    if (!newName.trim() || newName.trim() === oldName) {
-      this.cancelRename(oldName);
-      return;
-    }
 
-    try {
-      await this.topicService.renameTopic(oldName, newName.trim());
-      await this.loadRecentTopics(); // Refresh the list
-    } catch (error) {
-      console.error('Failed to rename topic:', error);
-      alert('Failed to rename topic. Please try again.');
-      this.cancelRename(oldName);
-    }
-  }
 
-  cancelRename(topicName: string) {
-    const topics = this.recentTopics();
-    const updatedTopics = topics.map(topic => 
-      topic.originalName === topicName 
-        ? { ...topic, isEditing: false, name: topic.originalName! }
-        : topic
-    );
-    this.recentTopics.set(updatedTopics);
-    this.filterTopics(); // Update filtered list
-  }
-
-  filterTopics() {
+  filterDebates() {
     const searchTerm = this.searchTerm.toLowerCase().trim();
-    const topics = this.recentTopics();
+    const debates = this.recentDebates();
     
     if (!searchTerm) {
-      this.filteredTopics.set(topics);
+      this.filteredDebates.set(debates);
       return;
     }
     
-    const filtered = topics.filter(topic => 
-      topic.name.toLowerCase().includes(searchTerm) ||
-      (topic.debaterName && topic.debaterName.toLowerCase().includes(searchTerm))
+    const filtered = debates.filter(debate => 
+      debate.topic.toLowerCase().includes(searchTerm) ||
+      debate.status.toLowerCase().includes(searchTerm)
     );
     
-    this.filteredTopics.set(filtered);
+    this.filteredDebates.set(filtered);
   }
 
   clearSearch() {
     this.searchTerm = '';
-    this.filteredTopics.set(this.recentTopics());
+    this.filteredDebates.set(this.recentDebates());
   }
 }

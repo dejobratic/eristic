@@ -115,4 +115,34 @@ export class DebateController {
       data: { summary }
     } as APIResponse);
   });
+
+  getDebateParticipants = asyncHandler(async (req: Request, res: Response) => {
+    const { debateId } = req.params;
+    const participants = await this.debateService.getDebateParticipants(debateId);
+
+    res.json({
+      success: true,
+      data: participants
+    } as APIResponse);
+  });
+
+  getDebateRounds = asyncHandler(async (req: Request, res: Response) => {
+    const { debateId } = req.params;
+    const rounds = await this.debateService.getDebateRounds(debateId);
+
+    res.json({
+      success: true,
+      data: rounds
+    } as APIResponse);
+  });
+
+  getDebateResponses = asyncHandler(async (req: Request, res: Response) => {
+    const { debateId } = req.params;
+    const responses = await this.debateService.getAllDebateResponses(debateId);
+
+    res.json({
+      success: true,
+      data: responses
+    } as APIResponse);
+  });
 }

@@ -21,7 +21,7 @@
 
 .back-button {
   align-self: flex-start;
-  display: flex;
+  display: none;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
@@ -308,26 +308,30 @@
 .create-debate-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
-  padding: 16px 32px;
-  background-color: var(--color-primary);
+  padding: 16px 28px;
+  background-color: var(--brand-primary);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
+  border-radius: 10px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
   min-height: 52px;
+  white-space: nowrap;
 }
 
 .create-debate-btn:hover:not(:disabled) {
-  background-color: var(--color-primary-hover);
+  background-color: var(--brand-primary-hover);
+  transform: translateY(-1px);
 }
 
 .create-debate-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .icon-start {
@@ -364,12 +368,21 @@
     max-width: 100%;
   }
   
-  .setup-header h1 {
-    font-size: 1.6rem;
+  .setup-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+  }
+  
+  .back-button {
+    display: flex;
   }
   
   .topic-display {
     font-size: 1rem;
+    flex: 1;
+    margin-left: 16px;
   }
   
   .participants-grid {

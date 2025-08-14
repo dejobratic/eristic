@@ -103,10 +103,12 @@ export class DebateService {
       const url = this.httpService.buildUrl(this.apiUrl, `/api/debates/${debateId}/pause`);
       await this.httpService.post<HttpResponse<any>, {}>(url, {});
       
-      // Update local cache
-      await this.refreshDebates();
+      // Update local cache immediately
+      this.updateDebateStatusInCache(debateId, 'paused');
     } catch (error) {
       console.error('Failed to pause debate:', error);
+      // Refresh on error to ensure consistency
+      await this.refreshDebates();
       throw error;
     }
   }
@@ -116,10 +118,12 @@ export class DebateService {
       const url = this.httpService.buildUrl(this.apiUrl, `/api/debates/${debateId}/resume`);
       await this.httpService.post<HttpResponse<any>, {}>(url, {});
       
-      // Update local cache
-      await this.refreshDebates();
+      // Update local cache immediately
+      this.updateDebateStatusInCache(debateId, 'active');
     } catch (error) {
       console.error('Failed to resume debate:', error);
+      // Refresh on error to ensure consistency
+      await this.refreshDebates();
       throw error;
     }
   }
@@ -298,6 +302,28 @@ export class DebateService {
     }
     
     this.debates.set([...currentDebates]);
+  }
+
+  private updateDebateStatusInCache(debateId: string, status: 'pending' | 'active' | 'completed' | 'paused') {
+    const currentDebates = this.debates();
+    const existingIndex = currentDebates.findIndex(d => d.id === debateId);
+    
+    if (existingIndex >= 0) {
+      const updatedDebate = {
+        ...currentDebates[existingIndex],
+        status,
+        updatedAt: new Date() // Update the timestamp to move it to the top
+      };
+      
+      // Remove the debate from its current position
+      const updatedDebates = [...currentDebates];
+      updatedDebates.splice(existingIndex, 1);
+      
+      // Add the updated debate to the beginning of the list
+      updatedDebates.unshift(updatedDebate);
+      
+      this.debates.set(updatedDebates);
+    }
   }
 
   private processDebateWithDetails(debate: DebateWithDetails): DebateWithDetails {

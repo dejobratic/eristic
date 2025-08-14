@@ -1,5 +1,6 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -14,7 +15,7 @@ import { Debater } from '@eristic/app/services/debater.service';
   templateUrl: './debate.html',
   styleUrl: './debate.css'
 })
-export class DebatePage implements OnInit {
+export class DebatePage implements OnInit, OnDestroy {
   debate = signal<DebateType | null>(null);
   currentRound = signal<DebateRound | null>(null);
   rounds = signal<DebateRound[]>([]);
@@ -30,8 +31,9 @@ export class DebatePage implements OnInit {
   private debateService = inject(DebateService);
   private debaterService = inject(DebaterService);
 
-  // Computed properties
-  debateId = computed(() => this.route.snapshot.paramMap.get('debateId') || '');
+  // Route parameter tracking
+  debateId = signal<string>('');
+  private routeSubscription?: Subscription;
   
   currentParticipant = computed(() => {
     const round = this.currentRound();
@@ -85,13 +87,24 @@ export class DebatePage implements OnInit {
   });
 
   async ngOnInit() {
-    const debateId = this.debateId();
-    if (!debateId) {
-      this.router.navigate(['/']);
-      return;
-    }
+    // Subscribe to route parameter changes
+    this.routeSubscription = this.route.paramMap.subscribe(async (params) => {
+      const debateId = params.get('debateId') || '';
+      
+      if (!debateId) {
+        this.router.navigate(['/']);
+        return;
+      }
 
-    await this.loadDebate(debateId);
+      this.debateId.set(debateId);
+      await this.loadDebate(debateId);
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.routeSubscription) {
+      this.routeSubscription.unsubscribe();
+    }
   }
 
   async loadDebate(debateId: string) {

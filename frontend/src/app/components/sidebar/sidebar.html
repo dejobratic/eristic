@@ -25,29 +25,29 @@
       </div>
     </nav>
 
-    <!-- Recent Topics -->
-    <section class="recent-section" aria-label="Recent topics">
+    <!-- Recent Debates -->
+    <section class="recent-section" aria-label="Recent debates">
       <div class="section-header">
-        <h3 class="section-title">Recent Topics</h3>
-        <button class="refresh-btn" (click)="refreshRecentTopics()" title="Refresh" [class.refreshing]="isRefreshing()" [disabled]="isRefreshing()">
+        <h3 class="section-title">Recent Debates</h3>
+        <button class="refresh-btn" (click)="refreshRecentDebates()" title="Refresh" [class.refreshing]="isRefreshing()" [disabled]="isRefreshing()">
           <i class="icon-refresh" [class.spinning]="isRefreshing()"></i>
         </button>
       </div>
       
-      <!-- Search Topics -->
-      @if (recentTopics().length > 0) {
-        <div class="search-container" role="search" aria-label="Search topics">
+      <!-- Search Debates -->
+      @if (recentDebates().length > 0) {
+        <div class="search-container" role="search" aria-label="Search debates">
           <div class="search-input-wrapper">
             <i class="icon-search" aria-hidden="true"></i>
             <input 
               type="text" 
               [(ngModel)]="searchTerm"
-              (input)="filterTopics()"
-              placeholder="Search topics... (⌘K)"
+              (input)="filterDebates()"
+              placeholder="Search debates... (⌘K)"
               class="search-input"
-              title="Search through your recent topics (Ctrl/Cmd + K)"
+              title="Search through your recent debates (Ctrl/Cmd + K)"
               accesskey="k"
-              aria-label="Search topics"
+              aria-label="Search debates"
               aria-describedby="search-help">
             @if (searchTerm) {
               <button class="search-clear" (click)="clearSearch()" title="Clear search" aria-label="Clear search term">
@@ -59,50 +59,26 @@
         </div>
       }
       
-      @if (filteredTopics().length > 0) {
-        <div class="recent-topics">
-          @for (topic of filteredTopics(); track topic.originalName) {
-            <div class="topic-item">
-              @if (topic.isEditing) {
-                <!-- Edit Mode -->
-                <div class="topic-edit-mode">
-                  <input 
-                    type="text" 
-                    [(ngModel)]="topic.name"
-                    class="topic-edit-input"
-                    (keydown.enter)="saveRename(topic.originalName!, topic.name)"
-                    (keydown.escape)="cancelRename(topic.originalName!)"
-                    #editInput>
-                  <div class="edit-actions">
-                    <button class="edit-save-btn" (click)="saveRename(topic.originalName!, topic.name)" title="Save">
-                      <i class="icon-check"></i>
-                    </button>
-                    <button class="edit-cancel-btn" (click)="cancelRename(topic.originalName!)" title="Cancel">
-                      <i class="icon-close"></i>
-                    </button>
+      @if (filteredDebates().length > 0) {
+        <div class="recent-debates">
+          @for (debate of filteredDebates(); track debate.id) {
+            <div class="debate-item">
+              <button class="debate-content-btn" (click)="navigateToDebate(debate.id)">
+                <div class="debate-content">
+                  <div class="debate-topic">{{ debate.topic }}</div>
+                  <div class="debate-meta">
+                    <span class="debate-status" [class]="'status-' + debate.status">{{ debate.status }}</span>
+                    <span class="debate-participants">{{ debate.participantCount }} debaters</span>
+                    <span class="debate-time">{{ debate.timestamp | date:'short' }}</span>
                   </div>
                 </div>
-              } @else {
-                <!-- View Mode -->
-                <button class="topic-content-btn" (click)="navigateToTopic(topic.name)">
-                  <div class="topic-content">
-                    <div class="topic-name">{{ topic.name }}</div>
-                    <div class="topic-meta">
-                      <span class="topic-debater">{{ topic.debaterName }}</span>
-                      <span class="topic-time">{{ topic.timestamp | date:'short' }}</span>
-                    </div>
-                  </div>
-                  <i class="icon-arrow-right topic-arrow"></i>
+                <i class="icon-arrow-right debate-arrow"></i>
+              </button>
+              <div class="debate-actions">
+                <button class="debate-delete-btn" (click)="deleteDebate(debate.id, debate.topic)" title="Delete debate">
+                  <i class="icon-delete"></i>
                 </button>
-                <div class="topic-actions">
-                  <button class="topic-rename-btn" (click)="startRename(topic.name)" title="Rename topic">
-                    <i class="icon-edit"></i>
-                  </button>
-                  <button class="topic-delete-btn" (click)="deleteTopic(topic.name)" title="Delete topic">
-                    <i class="icon-delete"></i>
-                  </button>
-                </div>
-              }
+              </div>
             </div>
           }
         </div>
@@ -110,12 +86,12 @@
         <div class="empty-state">
           @if (searchTerm) {
             <i class="icon-search-empty"></i>
-            <p class="empty-text">No topics found</p>
+            <p class="empty-text">No debates found</p>
             <p class="empty-hint">Try adjusting your search term</p>
           } @else {
-            <i class="icon-topic-empty"></i>
-            <p class="empty-text">No recent topics</p>
-            <p class="empty-hint">Start a debate to see topics here</p>
+            <i class="icon-debate-empty"></i>
+            <p class="empty-text">No recent debates</p>
+            <p class="empty-hint">Create a debate to see it here</p>
           }
         </div>
       }
