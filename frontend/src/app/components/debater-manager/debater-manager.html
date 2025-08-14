@@ -112,39 +112,38 @@
         <div class="debater-card" [class.inactive]="!debater.isActive">
           <div class="debater-header">
             <div class="debater-info">
-              <h3 class="debater-name">
-                {{ debater.name }}
-                @if (!debater.isActive) {
-                  <span class="inactive-badge">Inactive</span>
-                }
-                @if (debater.id === 'default') {
-                  <span class="default-badge">Default</span>
-                }
-              </h3>
+              <div class="debater-title-row">
+                <h3 class="debater-name">
+                  {{ debater.name }}
+                  @if (!debater.isActive) {
+                    <span class="inactive-badge">Inactive</span>
+                  }
+                </h3>
+                <div class="debater-actions">
+                  <button 
+                    class="action-btn edit-btn"
+                    (click)="openEditForm(debater)"
+                    title="Edit debater">
+                    <i class="icon-edit"></i>
+                  </button>
+                  @if (debater.id !== 'default') {
+                    <button 
+                      class="action-btn toggle-btn"
+                      [class.active]="debater.isActive"
+                      (click)="toggleDebaterActive(debater)"
+                      [title]="debater.isActive ? 'Deactivate debater' : 'Activate debater'">
+                      <i [class]="debater.isActive ? 'icon-active' : 'icon-inactive'"></i>
+                    </button>
+                    <button 
+                      class="action-btn delete-btn"
+                      (click)="deleteDebater(debater)"
+                      title="Delete debater">
+                      <i class="icon-delete"></i>
+                    </button>
+                  }
+                </div>
+              </div>
               <p class="debater-description">{{ debater.description }}</p>
-            </div>
-            <div class="debater-actions">
-              <button 
-                class="action-btn edit-btn"
-                (click)="openEditForm(debater)"
-                title="Edit debater">
-                <i class="icon-edit"></i>
-              </button>
-              <button 
-                class="action-btn toggle-btn"
-                [class.active]="debater.isActive"
-                (click)="toggleDebaterActive(debater)"
-                [title]="debater.isActive ? 'Deactivate debater' : 'Activate debater'">
-                <i [class]="debater.isActive ? 'icon-active' : 'icon-inactive'"></i>
-              </button>
-              @if (debater.id !== 'default') {
-                <button 
-                  class="action-btn delete-btn"
-                  (click)="deleteDebater(debater)"
-                  title="Delete debater">
-                  <i class="icon-delete"></i>
-                </button>
-              }
             </div>
           </div>
 

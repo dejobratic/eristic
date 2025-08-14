@@ -309,10 +309,14 @@
 }
 
 .debater-header {
+  margin-bottom: var(--space-5);
+}
+
+.debater-title-row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--space-3);
+  align-items: center;
+  margin-bottom: var(--space-4);
 }
 
 .debater-info {
@@ -320,13 +324,14 @@
 }
 
 .debater-name {
-  margin: 0 0 var(--space-2);
+  margin: 0;
   color: var(--text-primary);
   font-size: var(--text-lg);
   display: flex;
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
+  flex: 1;
 }
 
 .inactive-badge,
@@ -396,12 +401,13 @@
 .debater-details {
   display: flex;
   gap: var(--space-4);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-5);
   flex-wrap: wrap;
 }
 
 .detail-item {
   display: flex;
+  align-items: center;
   gap: var(--space-2);
 }
 
@@ -418,15 +424,18 @@
 
 .model-value {
   font-family: var(--font-family-mono);
-  background-color: var(--bg-tertiary);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-xs);
+  background-color: var(--brand-primary);
+  color: white;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
 }
 
 .system-prompt-preview {
   padding: var(--space-4);
   background-color: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   border-left: 3px solid var(--color-primary);
 }
@@ -444,8 +453,6 @@
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 100px;
-  overflow-y: auto;
 }
 
 /* Icons */
@@ -543,13 +550,20 @@
     padding: var(--space-3);
   }
   
-  .debater-header {
-    flex-direction: column;
-    gap: var(--space-3);
+  .debater-title-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+  
+  .debater-name {
+    flex: 1;
+    margin-right: var(--space-2);
   }
   
   .debater-actions {
-    align-self: stretch;
+    flex-shrink: 0;
     justify-content: flex-end;
   }
   

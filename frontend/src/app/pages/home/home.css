@@ -181,7 +181,7 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .home-page {
-    height: calc(100vh - var(--header-height) - 80px);
+    height: calc(100vh - var(--header-height) - 90px);
   }
   
   .main-content {
