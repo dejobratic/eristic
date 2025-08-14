@@ -27,15 +27,55 @@
       
       <!-- Debate Header -->
       <div class="debate-header">
-        <div class="header-navigation">
+        <!-- Desktop navigation (hidden on mobile) -->
+        <div class="header-navigation desktop-only">
           <button (click)="goBack()" class="back-button">
             <i class="icon-arrow-left"></i>
             <span>Back</span>
           </button>
         </div>
         
-        <div class="header-content">
+        <!-- Mobile top line: Back button, status badge, and action buttons (hidden on desktop) -->
+        <div class="mobile-top-line">
+          <div class="header-navigation">
+            <button (click)="goBack()" class="back-button">
+              <i class="icon-arrow-left"></i>
+              <span>Back</span>
+            </button>
+          </div>
+          
           <div class="debate-status-badge" [class]="getStatusIcon(debate()!.status)">
+            <i [class]="getStatusIcon(debate()!.status)"></i>
+            <span>{{ getStatusText(debate()!.status) }}</span>
+          </div>
+          
+          <div class="header-actions">
+            @if (canStartDebate()) {
+              <button (click)="startDebate()" class="btn-primary">
+                <i class="icon-play"></i>
+                <span>Start</span>
+              </button>
+            }
+            
+            @if (canPauseDebate()) {
+              <button (click)="pauseDebate()" class="btn-secondary">
+                <i class="icon-pause"></i>
+                <span>Pause</span>
+              </button>
+            }
+            
+            @if (canResumeDebate()) {
+              <button (click)="resumeDebate()" class="btn-primary">
+                <i class="icon-play"></i>
+                <span>Resume</span>
+              </button>
+            }
+          </div>
+        </div>
+        
+        <!-- Content section: topic and meta info -->
+        <div class="header-content">
+          <div class="debate-status-badge desktop-only" [class]="getStatusIcon(debate()!.status)">
             <i [class]="getStatusIcon(debate()!.status)"></i>
             <span>{{ getStatusText(debate()!.status) }}</span>
           </div>
@@ -58,7 +98,8 @@
           </div>
         </div>
         
-        <div class="header-actions">
+        <!-- Desktop actions (hidden on mobile) -->
+        <div class="header-actions desktop-only">
           @if (canStartDebate()) {
             <button (click)="startDebate()" class="btn-primary">
               <i class="icon-play"></i>
@@ -82,15 +123,6 @@
         </div>
       </div>
 
-      <!-- Progress Bar -->
-      <div class="progress-section">
-        <div class="progress-bar">
-          <div class="progress-fill" [style.width.%]="progressPercentage()"></div>
-        </div>
-        <div class="progress-text">
-          Progress: {{ progressPercentage() }}% Complete
-        </div>
-      </div>
 
       @if (debate()!.status === 'pending') {
         <!-- Pending State -->

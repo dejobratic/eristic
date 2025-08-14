@@ -1,7 +1,9 @@
 .debater-manager {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: var(--space-4);
+  width: 100%;
+  padding: var(--space-4) 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .manager-header {
@@ -91,6 +93,7 @@
   max-width: 750px;
   max-height: 90vh;
   overflow-y: auto;
+  box-sizing: border-box;
 }
 
 
@@ -278,6 +281,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .empty-state {
@@ -297,6 +303,10 @@
   border-radius: var(--radius-xl);
   padding: var(--space-4);
   transition: box-shadow 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  min-width: 0;
 }
 
 .debater-card:hover {
@@ -430,6 +440,10 @@
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
+  word-break: break-all;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .system-prompt-preview {
@@ -501,7 +515,7 @@
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .debater-manager {
-    padding: var(--space-3);
+    padding: var(--space-3) 0;
   }
   
   .manager-header {
@@ -522,6 +536,8 @@
   
   .debater-form {
     max-height: 95vh;
+    max-width: calc(100vw - var(--space-4));
+    width: calc(100vw - var(--space-4));
   }
   
   .form-header,

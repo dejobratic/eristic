@@ -2,8 +2,11 @@
 .app-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
   background: var(--bg-secondary);
+  overflow: hidden;
+  width: 100vw;
+  box-sizing: border-box;
 }
 
 /* Main Content */
@@ -14,6 +17,9 @@
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 1;
+  overflow: hidden;
+  box-sizing: border-box;
+  height: calc(100vh - var(--header-height) - var(--footer-height, 60px));
 }
 
 /* Sidebar responsive behavior */
@@ -21,6 +27,23 @@
   .app-main,
   app-footer {
     margin-left: var(--sidebar-width);
+  }
+}
+
+/* Mobile specific layout */
+@media (max-width: 767px) {
+  .app-main {
+    height: calc(100vh - var(--header-height) - var(--footer-height-mobile, 120px));
+  }
+  
+  /* Hide footer on non-home pages in mobile */
+  .app-layout.hide-footer-mobile app-footer {
+    display: none;
+  }
+  
+  /* Adjust main content when footer is hidden */
+  .app-layout.hide-footer-mobile .app-main {
+    height: calc(100vh - var(--header-height));
   }
 }
 

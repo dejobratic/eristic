@@ -1,4 +1,4 @@
-<div class="app-layout">
+<div class="app-layout" [class.hide-footer-mobile]="!isHomePage()">
   <!-- Modern Header -->
   <app-header></app-header>
   
@@ -11,5 +11,5 @@
   </main>
   
   <!-- Modern Footer -->
-  <app-footer></app-footer>
+  <app-footer [class.hidden-mobile]="!isHomePage()"></app-footer>
 </div>
